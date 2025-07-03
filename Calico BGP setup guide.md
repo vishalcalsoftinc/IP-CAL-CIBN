@@ -59,7 +59,7 @@ Perform these steps on **both** `k8s-master-1` and `k8s-master-2`.
 	su -
 	usermod -aG sudo user
 	su user
-```
+	```
 
 2.  **Set Static IP Addresses:**
     *   Find the interface name for the host-only network. It's usually `enp0s8`. Run `ip a` to confirm.

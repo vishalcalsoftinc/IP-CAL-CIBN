@@ -54,8 +54,14 @@ Now you have two VMs. Start both.
 #### **Section 0.3: Common Configuration on BOTH VMs**
 
 Perform these steps on **both** `k8s-master-1` and `k8s-master-2`.
+1.  Add current user to sudo
+	```bash
+	su -
+	usermod -aG sudo user
+	su user
+```
 
-1.  **Set Static IP Addresses:**
+2.  **Set Static IP Addresses:**
     *   Find the interface name for the host-only network. It's usually `enp0s8`. Run `ip a` to confirm.
     *   Edit the netplan configuration file:
         ```bash
@@ -97,17 +103,11 @@ Perform these steps on **both** `k8s-master-1` and `k8s-master-2`.
         ```
     *   Verify by pinging between the VMs: From `k8s-master-1`, run `ping 172.17.42.15`. It should work.
 
-2.  **Prepare for Kubernetes Installation (on both VMs):**
+3.  **Prepare for Kubernetes Installation (on both VMs):**
     *   Disable swap (required by kubelet).
         ```bash
         sudo swapoff -a
         sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
-        ```
-    *   Add current user to sudo
-        ```bash
-        su -
-		usermod -aG sudo user
-		su user
         ```
     * Enable kernel modules and configure sysctl for container networking.
         ```bash

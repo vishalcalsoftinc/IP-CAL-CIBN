@@ -23,7 +23,7 @@ $ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docke
 
 $ sudo apt-get update
 
-$ sudo apt-get install [containerd.io](http://containerd.io/) -y
+$ sudo apt-get install containerd.io -y
 
 # Picture
 
@@ -40,6 +40,7 @@ $ sudo vi /etc/containerd/config.toml
 
 # Set SystemdCgroup to true:
 # SystemdCgroup = true
+# sudo sed -i 's/SystemdCgroup = false/SystemdCgroup = true/g' /etc/containerd/config.toml
 
 # Picture
 

@@ -1,6 +1,15 @@
 
 ---
 ```bash
+# to add user(username) to sudo
+su -
+
+usermod -aG sudo user
+
+su user
+```
+---
+```bash
 $ sudo apt update
 $ sudo apt install apt-transport-https curl -y
 

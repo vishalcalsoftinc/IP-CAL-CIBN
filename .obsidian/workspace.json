@@ -90,7 +90,7 @@
               "type": "markdown",
               "state": {
                 "file": "Kubeadm Installation Guide.md",
-                "mode": "preview",
+                "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",

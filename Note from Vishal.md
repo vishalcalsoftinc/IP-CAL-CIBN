@@ -32,11 +32,16 @@ Calico theory
 [[Pod Creation Workflow]]
 [[Kubernetes services]]
 [[Kubernetes Network Policies]] 
-Calico implementation on Multi-note cluster created using KIND in wsl 
-
-Install kubeadm 
-Calico implementation
+Calico implementation on Multi-note cluster created using KIND in wsl
 
 ---
+2-7
+Install VirtualBox and tried to run kubeadm , got some issues related to virtualbox network drivers , got them resolved .
+Kubernetes Commands Documentation
+
+---
+3-7
+Created two vms , installed kubeadm on both nodes
+Connected them using Calico and BGP
 
 

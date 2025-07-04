@@ -82,6 +82,7 @@ Here is a detailed guide tailored specifically for WSL2 + Ubuntu.
 	kind get kubeconfig --name calico-lab > ~/.kube/config 
 	
 	# remove alias on kubectl
+	unalias kubectl
 	```
 6.  **Verify Cluster Status:** Check the nodes. Just like with Vagrant, they will be in a `NotReady` state because the CNI is missing.
     ```bash

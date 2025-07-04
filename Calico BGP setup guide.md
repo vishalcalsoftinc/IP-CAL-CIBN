@@ -54,7 +54,7 @@ Now you have two VMs. Start both.
 #### **Section 0.3: Common Configuration on BOTH VMs**
 
 Perform these steps on **both** `k8s-master-1` and `k8s-master-2`.
-1.  Add current user to sudo
+1.  Add current user(username) to sudo
 	```bash
 	su -
 	usermod -aG sudo user
@@ -197,6 +197,13 @@ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
 sudo chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
+
+After starting the Kubernetes cluster , untaint the node so that pods can be scheduled on this node (Alternately worker nodes can be added to each master but we are keeping it simple)
+```bash
+kubectl taint nodes k8s-master-1 node-role.kunetes.io/control-plane:NoSchedule
+kubectl taint nodes k8s-master-2 node-role.kunetes.io/control-plane:NoSchedule
+```
+
 ---
 
 ### **Part 2: Install Calico Operator & Custom Configuration (Your Steps 2, 3, 4)**
@@ -302,7 +309,7 @@ nano bgp-config-c1.yaml
 ```
 Paste this configuration. It sets its own ASN to `64512` and defines a peer connection to `172.17.42.15` (Cluster 2) which has ASN `64513`.
 ```yaml
-apiVersion: crd.projectcalico.org/v1
+apiVersion: projectcalico.org/v3
 kind: BGPConfiguration
 metadata:
   name: default
@@ -310,7 +317,7 @@ spec:
   asNumber: 64512
   nodeToNodeMeshEnabled: false # IMPORTANT: We are defining peers manually
 ---
-apiVersion: crd.projectcalico.org/v1
+apiVersion: projectcalico.org/v3
 kind: BGPPeer
 metadata:
   name: peer-to-cluster2

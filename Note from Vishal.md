@@ -42,6 +42,9 @@ Kubernetes Commands Documentation
 ---
 3-7
 Created two vms , installed kubeadm on both nodes
-Connected them using Calico and BGP
 
+---
+4-7
+Connected two clusters using Calico and BGP
+and tested connection between them
 

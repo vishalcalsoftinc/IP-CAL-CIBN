@@ -8,38 +8,6 @@
         "type": "tabs",
         "children": [
           {
-            "id": "7dac46aace1d408c",
-            "type": "leaf",
-            "pinned": true,
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "IP-CAL-CIBN.md",
-                "mode": "source",
-                "source": false
-              },
-              "pinned": true,
-              "icon": "lucide-file",
-              "title": "IP-CAL-CIBN"
-            }
-          },
-          {
-            "id": "e2dbcc0cc4de385c",
-            "type": "leaf",
-            "pinned": true,
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Prerequisites.md",
-                "mode": "source",
-                "source": false
-              },
-              "pinned": true,
-              "icon": "lucide-file",
-              "title": "Prerequisites"
-            }
-          },
-          {
             "id": "9dc90227e36855ba",
             "type": "leaf",
             "pinned": true,
@@ -56,29 +24,9 @@
             }
           },
           {
-            "id": "72eb78a59dda978d",
+            "id": "5cee37a77988cffe",
             "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Kubeadm Installation Guide.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Kubeadm Installation Guide"
-            }
-          }
-        ],
-        "currentTab": 3
-      },
-      {
-        "id": "820a12cff9b407c7",
-        "type": "tabs",
-        "children": [
-          {
-            "id": "580fb9e98366481d",
-            "type": "leaf",
+            "pinned": true,
             "state": {
               "type": "markdown",
               "state": {
@@ -86,11 +34,69 @@
                 "mode": "source",
                 "source": false
               },
+              "pinned": true,
               "icon": "lucide-file",
               "title": "Calico BGP setup guide"
             }
+          },
+          {
+            "id": "72b4352962086312",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Detailed explaination of BGP installation.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Detailed explaination of BGP installation"
+            }
+          },
+          {
+            "id": "fafceff45e834c3a",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Calico BGP setup using KIND.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Calico BGP setup using KIND"
+            }
+          },
+          {
+            "id": "efa78c35b6e9889e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Calico BGP setup using GKE.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Calico BGP setup using GKE"
+            }
+          },
+          {
+            "id": "27d77f755dd7806b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Calico BGP setup using Vagrant.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Calico BGP setup using Vagrant"
+            }
           }
-        ]
+        ],
+        "currentTab": 5
       }
     ],
     "direction": "vertical"
@@ -165,8 +171,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200,
-    "collapsed": true
+    "width": 200
   },
   "right": {
     "id": "028de37b6a29ee59",
@@ -182,13 +187,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Calico BGP setup guide.md",
+                "file": "Calico BGP setup using Vagrant.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Calico BGP setup guide"
+              "title": "Outline of Calico BGP setup using Vagrant"
             }
           },
           {
@@ -197,7 +202,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "prerequisites.md",
+                "file": "Calico BGP setup using GKE.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -207,7 +212,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for prerequisites"
+              "title": "Backlinks for Calico BGP setup using GKE"
             }
           },
           {
@@ -243,8 +248,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -256,16 +260,25 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "580fb9e98366481d",
+  "active": "27d77f755dd7806b",
   "lastOpenFiles": [
+    "Calico BGP setup using Vagrant.md",
+    "Calico BGP setup guide.md",
+    "Detailed explaination of BGP installation.md",
+    "Calico BGP setup using GKE.md",
+    "Calico BGP setup using KIND.md",
+    "The Network Plumbing- Calico CNI and BGP Peering.md",
+    "Kubeadm Installation Guide.md",
+    "Note from Vishal.md",
+    "IP range assignment.md",
+    "Detailed explanation of BGP installation.md",
+    "Pasted image 20250704155326.png",
+    "Pasted image 20250704155222.png",
+    "Pasted image 20250704154923.png",
     "Calico handson in WSL.md",
     "CNI Deep Dive with Calico.md",
-    "Kubeadm Installation Guide.md",
     "Commands.md",
     "Kubernetes services.md",
-    "Note from Vishal.md",
-    "Calico BGP setup guide.md",
-    "The Network Plumbing- Calico CNI and BGP Peering.md",
     "Prerequisites.md",
     "IP-CAL-CIBN.md",
     "DNAT & SNAT.md",
@@ -285,12 +298,6 @@
     "Pasted image 20250630121626.png",
     "Pasted image 20250630120139.png",
     "Pasted image 20250630120031.png",
-    "Pasted image 20250627155413.png",
-    "Pasted image 20250627155012.png",
-    "Pasted image 20250627144441.png",
-    "prerequisites.md",
-    "Telco IP 1 (O-5G).md",
-    "Welcome.md",
     "desktop.ini"
   ]
 }

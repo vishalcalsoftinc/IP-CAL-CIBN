@@ -413,3 +413,28 @@ This is the ultimate test.
     ```
 
 If you see ping replies, you have successfully configured cross-cluster networking with Calico and BGP! You have direct, non-encapsulated routing between pods in separate Kubernetes clusters.
+
+![[Pasted image 20250704154923.png]]
+![[Pasted image 20250704155222.png]]
+![[Pasted image 20250704155326.png]]
+
+ - pod in k8s-master-2 --> internet 
+ - pod in k8s-master-2 --> pod in k8s-master-2 (intra-cluster)
+ - pod in k8s-master-2 --> pod in k8s-master-1 (inter-cluster)
+
+---
+## related 
+- [[IP range assignment]]
+- [[Detailed explaination of BGP installation]]
+- [[Calico BGP setup using KIND]]
+- [[Calico BGP setup using GKE]]
+- [[Calico BGP setup using Vagrant]]
+- 
+
+---
+
+## Issues
+1. The VM is very unstable. It hangs , stops .
+2. The VM is not scalable , very limited.
+3. I only need the CLI in the VM , the desktop environment is unnecessary weight.
+4. Logging into the VM and running them is not easy.

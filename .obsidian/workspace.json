@@ -8,22 +8,6 @@
         "type": "tabs",
         "children": [
           {
-            "id": "9dc90227e36855ba",
-            "type": "leaf",
-            "pinned": true,
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "The Network Plumbing- Calico CNI and BGP Peering.md",
-                "mode": "source",
-                "source": false
-              },
-              "pinned": true,
-              "icon": "lucide-file",
-              "title": "The Network Plumbing- Calico CNI and BGP Peering"
-            }
-          },
-          {
             "id": "5cee37a77988cffe",
             "type": "leaf",
             "pinned": true,
@@ -40,50 +24,9 @@
             }
           },
           {
-            "id": "72b4352962086312",
+            "id": "69036582189d4411",
             "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Detailed explaination of BGP installation.md",
-                "mode": "preview",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Detailed explaination of BGP installation"
-            }
-          },
-          {
-            "id": "fafceff45e834c3a",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Calico BGP setup using KIND.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Calico BGP setup using KIND"
-            }
-          },
-          {
-            "id": "efa78c35b6e9889e",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Calico BGP setup using GKE.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Calico BGP setup using GKE"
-            }
-          },
-          {
-            "id": "27d77f755dd7806b",
-            "type": "leaf",
+            "pinned": true,
             "state": {
               "type": "markdown",
               "state": {
@@ -91,12 +34,55 @@
                 "mode": "source",
                 "source": false
               },
+              "pinned": true,
               "icon": "lucide-file",
               "title": "Calico BGP setup using Vagrant"
             }
+          },
+          {
+            "id": "282f813380f4fde4",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "OAI and Open5gs setup.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "OAI and Open5gs setup"
+            }
+          },
+          {
+            "id": "53941f97a9b4ff03",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "open5gs setup in vagrant.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "open5gs setup in vagrant"
+            }
+          },
+          {
+            "id": "fd409023218c16f5",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "CNI Deep Dive with Calico.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "CNI Deep Dive with Calico"
+            }
           }
         ],
-        "currentTab": 5
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -146,7 +132,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "open",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -260,23 +246,26 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "27d77f755dd7806b",
+  "active": "69036582189d4411",
   "lastOpenFiles": [
-    "Calico BGP setup using Vagrant.md",
+    "CNI Deep Dive with Calico.md",
     "Calico BGP setup guide.md",
-    "Detailed explaination of BGP installation.md",
-    "Calico BGP setup using GKE.md",
-    "Calico BGP setup using KIND.md",
-    "The Network Plumbing- Calico CNI and BGP Peering.md",
-    "Kubeadm Installation Guide.md",
+    "Calico BGP setup using Vagrant.md",
+    "open5gs setup in vagrant.md",
+    "OAI and Open5gs setup.md",
+    "Untitled.md",
     "Note from Vishal.md",
+    "The Network Plumbing- Calico CNI and BGP Peering.md",
+    "Pasted image 20250704154923.png",
+    "Detailed explaination of BGP installation.md",
+    "Calico BGP setup using KIND.md",
+    "Calico BGP setup using GKE.md",
+    "Kubeadm Installation Guide.md",
     "IP range assignment.md",
     "Detailed explanation of BGP installation.md",
     "Pasted image 20250704155326.png",
     "Pasted image 20250704155222.png",
-    "Pasted image 20250704154923.png",
     "Calico handson in WSL.md",
-    "CNI Deep Dive with Calico.md",
     "Commands.md",
     "Kubernetes services.md",
     "Prerequisites.md",
@@ -292,9 +281,6 @@
     "mermaid-diagram-2025-07-01-121814.svg",
     "Kubernetes Concepts and Commands.md",
     "Calico handson.md",
-    "Container Networking.md",
-    "Understanding the End-to-End 5G Architecture.md",
-    "GPRS Tunneling Protocol.md",
     "Pasted image 20250630121626.png",
     "Pasted image 20250630120139.png",
     "Pasted image 20250630120031.png",

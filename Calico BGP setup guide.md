@@ -429,6 +429,7 @@ If you see ping replies, you have successfully configured cross-cluster networki
 - [[Calico BGP setup using KIND]]
 - [[Calico BGP setup using GKE]]
 - [[Calico BGP setup using Vagrant]]
+- [[OAI and Open5gs setup]]
 - 
 
 ---

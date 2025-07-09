@@ -2336,4 +2336,7 @@ vagrant@open5gs-k8s-vm:~$
 
 ---
 
-next -- [[open5gs setup in vagrant ]]
+## next 
+- [[Building OAI docker images ]]
+- [[OAI setup vagrant]]
+- [[open5gs setup in vagrant ]]

@@ -217,3 +217,85 @@ docker push vishalcalsoftinc/oai-nrue:develop
 
 You can now visit your Docker Hub profile online to see your new oai-gnb and oai-nrue repositories.
 
+---
+### Logs
+
+```bash
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$ ls
+CHANGELOG.md       CONTRIBUTING.md  README.md   cmake_targets  docker       nfapi     openair2   pre-commit-clang  tools
+CMakeLists.txt     LICENSE          charts      common         executables  oaienv    openair3   radio
+CMakePresets.json  NOTICE.md        ci-scripts  doc            maketags     openair1  openshift  targets
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$ nano ~/openairinterface5g/Dockerfile.gnb
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$ nano ~/openairinterface5g/Dockerfile.nrue
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$ docker build -f Dockerfile.gnb -t vishalcalsoftinc/oai-gnb:develop .
+[+] Building 753.3s (15/15) FINISHED                                                                                  docker:default
+ => [internal] load build definition from Dockerfile.gnb                                                                        0.0s
+ => => transferring dockerfile: 1.41kB                                                                                          0.0s
+ => [internal] load metadata for docker.io/library/ubuntu:24.04                                                                 2.2s
+ => [auth] library/ubuntu:pull token for registry-1.docker.io                                                                   0.0s
+ => [internal] load .dockerignore                                                                                               0.0s
+ => => transferring context: 193B                                                                                               0.0s
+ => [internal] load build context                                                                                               6.5s
+ => => transferring context: 561.49MB                                                                                           6.4s
+ => CACHED [builder 1/6] FROM docker.io/library/ubuntu:24.04@sha256:440dcf6a5640b2ae5c77724e68787a906afb8ddee98bf86db94eea8528  0.0s
+ => [stage-1 2/4] RUN apt-get update && apt-get install -y     libsctp1     libconfig9     libfftw3-double3     libssl3     i  23.3s
+ => [builder 2/6] RUN apt-get update && apt-get install -y     git     wget     cmake     ninja-build     build-essential     178.0s
+ => [builder 3/6] COPY . /opt/oai                                                                                               3.6s
+ => [builder 4/6] WORKDIR /opt/oai                                                                                              0.1s
+ => [builder 5/6] RUN cd cmake_targets && ./build_oai -I --ninja                                                               79.7s
+ => [builder 6/6] RUN cd cmake_targets && ./build_oai -w SIMU --gNB --build-e2 --ninja                                        458.6s
+ => [stage-1 3/4] COPY --from=builder /opt/oai/cmake_targets/ran_build/build /opt/oai/                                          8.2s
+ => [stage-1 4/4] WORKDIR /opt/oai                                                                                              0.1s
+ => exporting to image                                                                                                          6.9s
+ => => exporting layers                                                                                                         6.9s
+ => => writing image sha256:917baec5342341ed08b05854acab4ba8439f1fc22ad888df878792f3d4952b09                                    0.0s
+ => => naming to docker.io/vishalcalsoftinc/oai-gnb:develop                                                                     0.0s
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$ docker build -f Dockerfile.nrue -t vishalcalsoftinc/oai-nrue:develop .
+[+] Building 378.0s (15/15) FINISHED                                                                                  docker:default
+ => [internal] load build definition from Dockerfile.nrue                                                                       0.0s
+ => => transferring dockerfile: 1.26kB                                                                                          0.0s
+ => [internal] load metadata for docker.io/library/ubuntu:24.04                                                                 3.4s
+ => [auth] library/ubuntu:pull token for registry-1.docker.io                                                                   0.0s
+ => [internal] load .dockerignore                                                                                               0.0s
+ => => transferring context: 193B                                                                                               0.0s
+ => [internal] load build context                                                                                               0.2s
+ => => transferring context: 272.06kB                                                                                           0.2s
+ => CACHED [builder 1/6] FROM docker.io/library/ubuntu:24.04@sha256:440dcf6a5640b2ae5c77724e68787a906afb8ddee98bf86db94eea8528  0.0s
+ => [stage-1 2/4] RUN apt-get update && apt-get install -y     libsctp1     libconfig9     libfftw3-double3     libssl3     i  27.4s
+ => CACHED [builder 2/6] RUN apt-get update && apt-get install -y     git     wget     cmake     ninja-build     build-essenti  0.0s
+ => CACHED [builder 3/6] COPY . /opt/oai                                                                                        0.0s
+ => CACHED [builder 4/6] WORKDIR /opt/oai                                                                                       0.0s
+ => CACHED [builder 5/6] RUN cd cmake_targets && ./build_oai -I --ninja                                                         0.0s
+ => [builder 6/6] RUN cd cmake_targets && ./build_oai -w SIMU --nrUE --ninja                                                  343.8s
+ => [stage-1 3/4] COPY --from=builder /opt/oai/cmake_targets/ran_build/build /opt/oai/                                          9.3s
+ => [stage-1 4/4] WORKDIR /opt/oai                                                                                              0.1s
+ => exporting to image                                                                                                          9.9s
+ => => exporting layers                                                                                                         9.8s
+ => => writing image sha256:3f842e86a392e2af4526d2f5a2de789bddb3069605e84d3731b510bf1ff47970                                    0.0s
+ => => naming to docker.io/vishalcalsoftinc/oai-nrue:develop                                                                    0.0s
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$ docker push vishalcalsoftinc/oai-gnb:develop
+The push refers to repository [docker.io/vishalcalsoftinc/oai-gnb]
+5f70bf18a086: Mounted from vishalcalsoftinc/quiz-app
+bc1d856562ae: Pushed
+6ab9215ba1f9: Pushed
+45a01f98e78c: Mounted from library/ubuntu
+develop: digest: sha256:4438b3f25e974aa182b2dcdc18ca6be2bf57edb3467487c27ef80d1162a7bdb6 size: 1159
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$ docker push vishalcalsoftinc/oai-nrue:develop
+The push refers to repository [docker.io/vishalcalsoftinc/oai-nrue]
+5f70bf18a086: Mounted from vishalcalsoftinc/oai-gnb
+fecda858abcd: Pushed
+69ea210718c4: Pushed
+45a01f98e78c: Mounted from vishalcalsoftinc/oai-gnb
+develop: digest: sha256:51b3b90fb7065d594517a38d529b1dd5a26373fa28d0f4d7dc07aa9065c1f5d4 size: 1159
+vishalkumar_shaw@IN-8KBKXD3:~/openairinterface5g$
+```

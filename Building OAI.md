@@ -134,6 +134,61 @@ sudo ./nr-uesoftmodem -r 106 --numerology 1 --band 78 -C 3619200000 --rfsim --sa
 
 ---
 ## Logs
+### Commands I ran
+Of course. Here is a list of all the commands you ran, extracted from your terminal session log:
+
+#### System Setup & Updates
+1.  `# Update system`
+2.  `sudo apt update && sudo apt upgrade -y`
+3.  `# Install essential build tools`
+4.  `sudo apt install -y git cmake build-essential pkg-config`
+5.  `sudo apt install -y libfftw3-dev libmbedtls-dev libsctp-dev`
+6.  `sudo apt install -y libyaml-cpp-dev libpcap-dev ninja-build`
+
+#### Cloning and Building OpenAirInterface5G
+7.  `# Clone the main OAI repository`
+8.  `git clone https://gitlab.eurecom.fr/oai/openairinterface5g oai`
+9.  `cd oai/`
+10. `# Navigate to build scripts`
+11. `cd cmake_targets/`
+12. `# Execute : Build step by step for debugging`
+13. `./build_oai -I                    # Install dependencies first`
+14. `./build_oai -w SIMU --gNB --ninja # Build gNB` (This command was interrupted with `^C`)
+
+#### Installing Missing Dependencies
+15. `sudo apt install -y libcap-dev libcblas-dev`
+16. `sudo apt install -y libatlas-base-dev`
+17. `sudo apt install -y libcap-dev`
+
+#### Resuming the Build Process
+18. `./build_oai -w SIMU --gNB --ninja # Build gNB`
+19. `./build_oai -w SIMU --nrUE --ninja # Build nrUE`
+20. `./build_oai --build-e2 --ninja    # Build E2 components`
+
+#### Configuration
+21. `# Navigate to configuration directory`
+22. `cd ~/oai/targets/PROJECTS/GENERIC-NR-5GC/CONF/`
+23. `ls`
+24. `# Copy and modify gNB configuration`
+25. `cp gnb.sa.band78.fr1.106PRB.usrpb210.conf my_gnb.conf`
+26. `nano my_gnb.conf`
+27. `# Copy UE configuration`
+28. `cp ue.conf my_ue.conf`
+29. `nano my_gnb.conf`
+30. `rm my_gnb.conf`
+31. `cp gnb.sa.band78.fr1.106PRB.usrpb210.conf my_gnb.conf`
+
+#### System and Process Checks
+32. `# Check if gNodeB is running`
+33. `ps aux | grep nr-softmodem`
+34. `# Check network interfaces`
+35. `ip addr show`
+36. `# Check UE status`
+37. `ps aux | grep nr-uesoftmodem`
+38. `# Check if UE interface is created`
+39. `ip addr show oaitun_ue1`
+40. `# Ping test from UE`
+41. `ping -I oaitun_ue1 8.8.8.8`
 
 ### Building
 

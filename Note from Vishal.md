@@ -66,23 +66,52 @@ Connected two clusters using Calico and BGP
 and tested connection between them
 
 ---
+9-7
+Tried to build OAI locally - failed 
 
- https://youtube.com/playlist?list=PLSAko72nKb8QWsfPpBlsw-kOdMBD7sra-&si=QxXu3n_sgUYA3tEm
- 
- https://github.com/vishalcalsoftinc/IP-CAL-CIBN/blob/main/Container%20Networking.md
- 
- https://github.com/vishalcalsoftinc/IP-CAL-CIBN/blob/main/Pod%20Networking%2C%20CNI%20%26%20Flannel.md
+10-7
+Successfully built the OAI setup locally in WSL and shared it with Sakshi and Sushmita.
+Tried to built the same in VM but failed due to CPU restrictions.
+Built docker images of the OAI components and shared them with Sakshi and Sushmita.
+Started reading the configuration the OAI components .
 
-https://github.com/vishalcalsoftinc/IP-CAL-CIBN/blob/main/Kubernetes%20services.md
 
 ---
 
 
- https://youtube.com/playlist?list=PLSAko72nKb8QWsfPpBlsw-kOdMBD7sra-&si=QxXu3n_sgUYA3tEm
- 
- https://github.com/vishalcalsoftinc/IP-CAL-CIBN/blob/main/CNI%20Deep%20Dive%20with%20Calico.md
- 
- https://github.com/vishalcalsoftinc/IP-CAL-CIBN/blob/main/Calico%20BGP%20setup%20guide.md
+9-7
+Tried to build OAI locally - failed  
 
----
+10-7
+Successfully built the OAI setup locally in WSL and shared it with Sakshi and Sushmita.
+Tried to built the same in VM but failed due to CPU restrictions.
+Built docker images of the OAI components and shared them with Sakshi and Sushmita.
+Started reading the configuration the OAI components .
+
+11-7
+Read the OAI deployment , service files 
+
+14-7
+Tried to deploy OAI components (depl , svc) on VM created using vagrant and VirtualBox . The deployment is failing again and again because the OAI image requests for AVX (CPU feature) but the VM is not AVX enabled . AVX is present on the host . Found out that VirtualBox is not passing that feature to the VM . Possible fixes either deploy on host machine or try alternative suitable virtualizer . 
+Created a network diagram of OAI including all components and the data flow.
+
+15-7
+Tried to run open5gs on vm
+
+16-7
+Setup WSL
+Installed open5gs 
+Wrote configuration files for open5gs
+Added a subcriber with webui
+
+17-7
+Build OAI components
+wrote the OAI (cucp , cuup , du , nr-ue) conf files
+ran OAI with the above conf ( failed )
+
+
+Studying for semtech embedded 
+
+18-7
+Studying for semtech embedded 
 

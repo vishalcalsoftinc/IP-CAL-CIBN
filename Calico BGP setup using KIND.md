@@ -1,339 +1,343 @@
+Here is a detailed guide to create a similar two-node Kubernetes setup using `kind` within a WSL environment. This guide replicates the architecture and networking principles of the Vagrant-based setup, establishing two distinct Kubernetes clusters on a single machine and enabling direct pod-to-pod communication between them using Calico and BGP.
 
----
-Of course. Your analysis of the issues with the VirtualBox-based architecture is perfectly valid. Heavyweight virtualization is often slow, resource-intensive, and cumbersome for modern development workflows, especially for Kubernetes.
+### **Architecture Overview**
 
-Based on your requirements for a stable, scalable, CLI-focused, and easy-to-manage environment, here is a detailed guide for an alternative architecture using **Kind (Kubernetes in Docker)**.
+Instead of using two separate VMs, we will use `kind` (Kubernetes in Docker) to create two single-node clusters. Each "node" is a Docker container running on your WSL instance.
 
-### **Why this Alternative is Better**
-
-This approach directly solves your stated problems:
-
-1.  **Instability -> Stability & Speed:** Instead of full virtual machines, Kind runs each Kubernetes node as a lightweight, isolated Docker container. This is significantly faster, uses a fraction of the RAM and CPU, and is far more stable for local development.
-2.  **Limited Scalability -> High Scalability:** Creating and destroying entire multi-node clusters takes seconds. You can run multiple complex clusters simultaneously, limited only by your host machine's Docker resources.
-3.  **Unnecessary Weight -> Minimalist & CLI-First:** The nodes run a minimal, pre-packaged Linux image with no desktop environment. Your primary interaction is through `kubectl` and `kind` on your local command line, which is exactly the CLI-driven experience you need.
-4.  **Difficult Management -> Fully Automated:** The entire cluster topology is defined in a single configuration file. One command (`kind create cluster`) builds the entire cluster. There is no need to manually log into nodes, configure networking, or manage SSH keys.
-
----
-
-## **Comprehensive Guide: Building a Multi-Cluster Lab with Kind and BGP Peering**
-
-### **1. High-Level Goal & New Architecture**
-
-The goal remains the same: create two independent Kubernetes clusters that can directly route traffic between their pods using Calico and BGP.
-
-**The New Architecture:**
-
-Instead of VirtualBox VMs, we will use Docker containers as our Kubernetes nodes. The `kind` tool will orchestrate the creation of these containerized nodes and bootstrap Kubernetes inside them.
-
-*   **Virtualization Layer:** Docker Engine (replaces VirtualBox).
-*   **"Nodes":** Docker containers running a minimal OS and Kubernetes components (replaces Ubuntu VMs).
-*   **Shared Network:** A standard Docker bridge network (replaces `vboxnet0`). All node containers will be attached to this network automatically, allowing them to communicate.
-*   **Management:** `kind` CLI and `kubectl` on your host machine (replaces manual `ssh` and `netplan`).
-
-**Our New Lab Environment:**
-
-*   `cluster1`: A Kubernetes cluster whose control-plane node is a Docker container. Pod CIDR `10.10.0.0/16`.
-*   `cluster2`: A second cluster, also a container. Pod CIDR `10.0.0.0/16`.
-*   `kind` Docker Network: The shared L2 network connecting the two containerized nodes.
+1.  **Host Machine:** Your PC running WSL 2 and Docker Desktop.
+2.  **Cluster 1 (`oai-ran-cluster`):**
+    *   **Role:** Simulates the RAN cluster.
+    *   **Pod CIDR:** `10.20.0.0/16`
+    *   **Service CIDR:** `10.21.0.0/16`
+    *   **BGP ASN:** `64512`
+3.  **Cluster 2 (`open5gs-core-cluster`):**
+    *   **Role:** Simulates the 5G Core cluster.
+    *   **Pod CIDR:** `10.30.0.0/16`
+    *   **Service CIDR:** `10.31.0.0/16`
+    *   **BGP ASN:** `64513`
+4.  **Networking:**
+    *   **Inter-Node:** Both `kind` node containers will be on the same Docker bridge network, allowing them to communicate directly via their container IPs.
+    *   **Inter-Cluster:** Calico CNI with BGP will be configured on each cluster. They will peer with each other to advertise their pod routes, enabling direct, non-encapsulated routing between pods across the two clusters.
 
 ---
 
-### **Part 0: The Foundation - Host Environment Setup**
+### **Part 0: Host Environment Setup (WSL)**
 
-These steps are performed once on your main computer (Linux, macOS, or Windows w/ WSL2).
+These steps are performed in your WSL 2 terminal.
 
-#### **Section 0.1: Install Dependencies**
+1.  **Install/Update WSL:** Ensure you have a modern WSL 2 distribution installed (e.g., Ubuntu 20.04 or newer).
 
-1.  **Install Docker Engine or Docker Desktop:** Docker is the new foundation that will run your containerized nodes.
-    *   Follow the official installation guide for your operating system. Ensure the Docker daemon is running.
-
-2.  **Install `kubectl`:** The standard Kubernetes command-line tool.
-    *   Follow the official Kubernetes documentation to install `kubectl`.
-
-3.  **Install `kind`:** The tool for running Kubernetes in Docker.
-    *   **On macOS/Linux:**
-        ```bash
-        curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.23.0/kind-linux-amd64
-        chmod +x ./kind
-        sudo mv ./kind /usr/local/bin/kind
-        ```
-    *   Check the [Kind releases page](https://github.com/kubernetes-sigs/kind/releases) for the latest version and instructions for other operating systems.
-
-4.  **Install `calicoctl`:** The Calico-specific command-line tool.
+2.  **Install Docker Desktop:** Install Docker Desktop for Windows and ensure it's configured to use the WSL 2 backend. Verify it's running.
     ```bash
-    curl -L https://github.com/projectcalico/calico/releases/download/v3.28.0/calicoctl-linux-amd64 -o calicoctl
+    # This command should execute without errors in your WSL terminal
+    docker ps
+    ```
+
+3.  **Install `kubectl`:**
+    ```bash
+    sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates curl
+    curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+    sudo apt-get update
+    sudo apt-get install -y kubectl
+    ```
+
+4.  **Install `kind`:**
+    ```bash
+    # For amd64 / x86_64
+    [ $(uname -m) = x86_64 ] && curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.22.0/kind-linux-amd64
+    chmod +x ./kind
+    sudo mv ./kind /usr/local/bin/kind
+    ```
+
+---
+
+### **Part 1: Infrastructure Provisioning with KIND**
+
+1.  **Create a Project Directory:**
+    ```bash
+    mkdir 5g-kind-lab
+    cd 5g-kind-lab
+    ```
+
+2.  **Create KIND Cluster Configurations:**
+    We need two configuration files to define our clusters. The key settings are `disableDefaultCNI` (so we can install Calico) and the distinct networking CIDRs.
+
+    **For `oai-ran-cluster` (`kind-oai-config.yaml`):**
+    ```yaml
+    # kind-oai-config.yaml
+    kind: Cluster
+    apiVersion: kind.x-k8s.io/v1alpha4
+    name: oai-ran-cluster
+    nodes:
+    - role: control-plane
+    networking:
+      disableDefaultCNI: true # IMPORTANT: We will install Calico manually
+      podSubnet: "10.20.0.0/16"
+      serviceSubnet: "10.21.0.0/16"
+    ```
+
+    **For `open5gs-core-cluster` (`kind-core-config.yaml`):**
+    ```yaml
+    # kind-core-config.yaml
+    kind: Cluster
+    apiVersion: kind.x-k8s.io/v1alpha4
+    name: open5gs-core-cluster
+    nodes:
+    - role: control-plane
+    networking:
+      disableDefaultCNI: true # IMPORTANT: We will install Calico manually
+      podSubnet: "10.30.0.0/16"
+      serviceSubnet: "10.31.0.0/16"
+    ```
+
+3.  **Launch the Clusters:**
+    Run these commands from your `5g-kind-lab` directory.
+    ```bash
+    kind create cluster --config kind-oai-config.yaml
+    kind create cluster --config kind-core-config.yaml
+    ```
+
+4.  **Verify Cluster Creation:**
+    You should now have two clusters running and two contexts configured in your `kubeconfig`.
+    ```bash
+    # List the kind clusters
+    kind get clusters
+
+    # List the kubectl contexts
+    kubectl config get-contexts
+    # You should see:
+    # kind-oai-ran-cluster
+    # kind-open5gs-core-cluster
+    ```
+
+5.  **Get Node Container IPs:**
+    This is the most critical step for BGP peering. We need the IP addresses assigned by Docker to our `kind` "node" containers.
+    ```bash
+    # Get the IP for the OAI RAN cluster node
+    OAI_NODE_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' oai-ran-cluster-control-plane)
+
+    # Get the IP for the Open5GS Core cluster node
+    CORE_NODE_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' open5gs-core-cluster-control-plane)
+
+    echo "OAI RAN Node IP: $OAI_NODE_IP"
+    echo "Open5GS Core Node IP: $CORE_NODE_IP"
+    ```
+    Keep these IPs handy. The rest of the guide will use these shell variables.
+
+---
+
+### **Part 2: Calico and BGP Setup**
+
+For each of the following sections, you must run the commands for **both clusters** by switching the `kubectl` context.
+
+#### **Section 2.1: Install Calico (Run for BOTH clusters)**
+
+1.  **Install the Tigera (Calico) Operator:**
+    ```bash
+    # --- For OAI RAN Cluster ---
+    kubectl config use-context kind-oai-ran-cluster
+    kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/tigera-operator.yaml
+
+    # --- For Open5GS Core Cluster ---
+    kubectl config use-context kind-open5gs-core-cluster
+    kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.26.1/manifests/tigera-operator.yaml
+    ```
+
+2.  **Create Calico `Installation` Resources:**
+    These files tell the operator how to configure Calico, specifying the pod CIDR we defined in the `kind` configs.
+
+    **For `oai-ran-cluster` (`calico-install-oai.yaml`):**
+    ```yaml
+    # calico-install-oai.yaml
+    apiVersion: operator.tigera.io/v1
+    kind: Installation
+    metadata:
+      name: default
+    spec:
+      calicoNetwork:
+        ipPools:
+        - blockSize: 26
+          cidr: 10.20.0.0/16  # CIDR for OAI RAN cluster
+          encapsulation: None # No encapsulation for direct routing
+          natOutgoing: Enabled
+          nodeSelector: all()
+    ```
+
+    **For `open5gs-core-cluster` (`calico-install-core.yaml`):**
+    ```yaml
+    # calico-install-core.yaml
+    apiVersion: operator.tigera.io/v1
+    kind: Installation
+    metadata:
+      name: default
+    spec:
+      calicoNetwork:
+        ipPools:
+        - blockSize: 26
+          cidr: 10.30.0.0/16 # CIDR for Open5GS Core cluster
+          encapsulation: None # No encapsulation for direct routing
+          natOutgoing: Enabled
+          nodeSelector: all()
+    ```
+
+3.  **Apply the Calico Installations:**
+    ```bash
+    # --- Apply to OAI RAN Cluster ---
+    kubectl config use-context kind-oai-ran-cluster
+    kubectl apply -f calico-install-oai.yaml
+
+    # --- Apply to Open5GS Core Cluster ---
+    kubectl config use-context kind-open5gs-core-cluster
+    kubectl apply -f calico-install-core.yaml
+    ```
+    Wait a minute or two for Calico pods to start in the `calico-system` namespace on both clusters. You can check with `watch kubectl get pods -n calico-system`.
+
+#### **Section 2.2: Configure BGP Peering**
+
+Now we create the BGP configuration to peer the clusters together.
+
+1.  **Create BGP Configuration YAMLs:**
+
+    **For `oai-ran-cluster` (to peer with Core):**
+    Create `bgp-oai.yaml`. This file tells the OAI cluster's Calico instance to peer with the Core cluster's node.
+    ```yaml
+    # bgp-oai.yaml
+    apiVersion: projectcalico.org/v3
+    kind: BGPConfiguration
+    metadata:
+      name: default
+    spec:
+      asNumber: 64512 # OAI RAN Cluster ASN
+      nodeToNodeMeshEnabled: false # We are defining peers explicitly
+    ---
+    apiVersion: projectcalico.org/v3
+    kind: BGPPeer
+    metadata:
+      name: peer-to-core-cluster
+    spec:
+      peerIP: __CORE_NODE_IP__   # Placeholder for Core Node IP
+      asNumber: 64513          # ASN of Core Cluster
+    ```
+
+    **For `open5gs-core-cluster` (to peer with RAN):**
+    Create `bgp-core.yaml`. This file tells the Core cluster's Calico instance to peer with the RAN cluster's node.
+    ```yaml
+    # bgp-core.yaml
+    apiVersion: projectcalico.org/v3
+    kind: BGPConfiguration
+    metadata:
+      name: default
+    spec:
+      asNumber: 64513 # Open5GS Core Cluster ASN
+      nodeToNodeMeshEnabled: false # We are defining peers explicitly
+    ---
+    apiVersion: projectcalico.org/v3
+    kind: BGPPeer
+    metadata:
+      name: peer-to-ran-cluster
+    spec:
+      peerIP: __OAI_NODE_IP__   # Placeholder for RAN Node IP
+      asNumber: 64512          # ASN of RAN Cluster
+    ```
+
+2.  **Substitute IPs and Apply BGP Configurations:**
+    We use `sed` to replace the placeholders with the actual IPs we captured earlier.
+    ```bash
+    # Substitute and apply for OAI Cluster
+    sed -i "s/__CORE_NODE_IP__/$CORE_NODE_IP/" bgp-oai.yaml
+    kubectl config use-context kind-oai-ran-cluster
+    kubectl apply -f bgp-oai.yaml
+
+    # Substitute and apply for Core Cluster
+    sed -i "s/__OAI_NODE_IP__/$OAI_NODE_IP/" bgp-core.yaml
+    kubectl config use-context kind-open5gs-core-cluster
+    kubectl apply -f bgp-core.yaml
+    ```
+
+#### **Section 2.3: Verify BGP Peering**
+
+1.  **Install `calicoctl`:**
+    ```bash
+    curl -L https://github.com/projectcalico/calico/releases/download/v3.26.1/calicoctl-linux-amd64 -o calicoctl
     chmod +x ./calicoctl
     sudo mv ./calicoctl /usr/local/bin/
     ```
 
----
+2.  **Check BGP Status:**
+    Exec into the `calico-node` pod on either cluster and check the status.
 
-### **Part 1: Define and Create the Clusters**
-
-With `kind`, we define our clusters declaratively in YAML files. This replaces the manual `kubeadm init` process.
-
-#### **Section 1.1: Create the Cluster Configuration Files**
-
-**Create `kind-cluster-1.yaml`:**
-```yaml
-# kind-cluster-1.yaml
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-name: cluster1
-nodes:
-- role: control-plane
-  # This is important for exposing the API server to your host
-  kubeadmConfigPatches:
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-ip: 0.0.0.0 # Use the container's Docker IP
-networking:
-  # CRITICAL: Disable the default CNI so we can install Calico
-  disableDefaultCNI: true
-  podSubnet: "10.10.0.0/16"    # Must match Calico's IPPool
-  serviceSubnet: "10.30.0.0/16"
-```
-
-**Create `kind-cluster-2.yaml`:**
-```yaml
-# kind-cluster-2.yaml
-kind: Cluster
-apiVersion: kind.x-k8s.io/v1alpha4
-name: cluster2
-nodes:
-- role: control-plane
-  kubeadmConfigPatches:
-  - |
-    kind: InitConfiguration
-    nodeRegistration:
-      kubeletExtraArgs:
-        node-ip: 0.0.0.0
-networking:
-  disableDefaultCNI: true
-  podSubnet: "10.0.0.0/16"     # Use a non-overlapping CIDR
-  serviceSubnet: "10.20.0.0/16"
-```
-
-#### **Section 1.2: Create the Clusters**
-
-Now, execute the `kind` commands from your terminal. `kind` will automatically configure `kubectl` contexts for you.
-
-```bash
-# Create the first cluster
-kind create cluster --config kind-cluster-1.yaml
-
-# Create the second cluster
-kind create cluster --config kind-cluster-2.yaml
-```
-
-You can see the `kubectl` contexts that were created:
-```bash
-kubectl config get-contexts
-# CURRENT   NAME                 CLUSTER              AUTHINFO             NAMESPACE
-# *         kind-cluster1        kind-cluster1        kind-cluster1
-#           kind-cluster2        kind-cluster2        kind-cluster2
-```
-
----
-
-### **Part 2: Install and Configure Calico**
-
-The process is nearly identical to the original guide, but we must first set our `kubectl` context to target the correct cluster for each command.
-
-#### **Section 2.1: Install Tigera Operator (on BOTH clusters)**
-
-```bash
-# Target cluster1
-kubectl config use-context kind-cluster1
-kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
-
-# Target cluster2
-kubectl config use-context kind-cluster2
-kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
-```
-
-#### **Section 2.2: Install Calico in BGP Mode (on BOTH clusters)**
-
-This step provides the custom configuration that enables BGP mode.
-
-**For Cluster 1**, use the same `calico-custom-c1.yaml` from the previous guide, ensuring the CIDR matches `kind-cluster-1.yaml`.
-```yaml
-# calico-custom-c1.yaml
-apiVersion: operator.tigera.io/v1
-kind: Installation
-metadata:
-  name: default
-spec:
-  calicoNetwork:
-    ipPools:
-    - blockSize: 26
-      cidr: 10.10.0.0/16
-      encapsulation: None
-      natOutgoing: Enabled
-      nodeSelector: all()
----
-apiVersion: operator.tigera.io/v1
-kind: APIServer
-metadata:
-  name: default
-spec: {}
-```
-Apply it:
-```bash
-kubectl config use-context kind-cluster1
-kubectl apply -f calico-custom-c1.yaml
-```
-
-**For Cluster 2**, use `calico-custom-c2.yaml` with its unique CIDR.
-```yaml
-# calico-custom-c2.yaml
-apiVersion: operator.tigera.io/v1
-kind: Installation
-metadata:
-  name: default
-spec:
-  calicoNetwork:
-    ipPools:
-    - blockSize: 26
-      cidr: 10.0.0.0/16
-      encapsulation: None
-      natOutgoing: Enabled
-      nodeSelector: all()
----
-apiVersion: operator.tigera.io/v1
-kind: APIServer
-metadata:
-  name: default
-spec: {}
-```
-Apply it:
-```bash
-kubectl config use-context kind-cluster2
-kubectl apply -f calico-custom-c2.yaml
-```
-
----
-
-### **Part 3: Configure BGP Peering**
-
-This is the key step where we connect the two clusters. Instead of static IPs, we need to find the dynamic IPs assigned to our "node" containers by Docker.
-
-#### **Section 3.1: Find the Node Container IPs**
-
-Run this Docker command on your host machine to get the IPs of the running containers on the `kind` network.
-```bash
-docker network inspect kind --format '{{range .Containers}}{{.Name}}: {{.IPv4Address}}{{end}}'
-```
-**Example Output:**
-```
-cluster2-control-plane: 172.18.0.3/16
-cluster1-control-plane: 172.18.0.2/16
-```
-Note these IPs. We will use `172.18.0.3` as the peer IP for cluster 1, and `172.18.0.2` for cluster 2.
-
-#### **Section 3.2: Create and Apply BGP Configurations**
-
-**On `cluster1`**, create `bgp-config-c1.yaml`.
-*   Replace `PEER_IP_OF_CLUSTER_2` with the actual IP you found (e.g., `172.18.0.3`).
-```yaml
-# bgp-config-c1.yaml
-apiVersion: projectcalico.org/v3
-kind: BGPConfiguration
-metadata:
-  name: default
-spec:
-  asNumber: 64512
-  nodeToNodeMeshEnabled: false
----
-apiVersion: projectcalico.org/v3
-kind: BGPPeer
-metadata:
-  name: peer-to-cluster2
-spec:
-  peerIP: 172.18.0.3 # Use IP of cluster2-control-plane container
-  asNumber: 64513
-```
-Apply it (note the `--context` flag for targeting the right cluster):
-```bash
-calicoctl apply -f bgp-config-c1.yaml --context=kind-cluster1
-```
-
-**On `cluster2`**, create `bgp-config-c2.yaml`.
-*   Replace `PEER_IP_OF_CLUSTER_1` with its actual IP (e.g., `172.18.0.2`).
-```yaml
-# bgp-config-c2.yaml
-apiVersion: projectcalico.org/v3
-kind: BGPConfiguration
-metadata:
-  name: default
-spec:
-  asNumber: 64513
-  nodeToNodeMeshEnabled: false
----
-apiVersion: projectcalico.org/v3
-kind: BGPPeer
-metadata:
-  name: peer-to-cluster1
-spec:
-  peerIP: 172.18.0.2 # Use IP of cluster1-control-plane container
-  asNumber: 64512
-```
-Apply it:
-```bash
-calicoctl apply -f bgp-config-c2.yaml --context=kind-cluster2
-```
-
----
-
-### **Part 4: Verification and Testing**
-
-The verification process is identical, proving that this new architecture achieves the same networking outcome.
-
-#### **Section 4.1: Verify BGP Peering Status**
-
-Check the status from either cluster. You must provide the correct context to `calicoctl`.
-```bash
-sudo calicoctl node status --context=kind-cluster1
-```
-**Expected Output:**
-```
-Calico process is running.
-
-IPv4 BGP status
-+--------------+---------------+----------+------------+-------------+
-| PEER ADDRESS |   PEER TYPE   |  STATE   |   SINCE    |    INFO     |
-+--------------+---------------+----------+------------+-------------+
-| 172.18.0.3   | global        | up       | <some_time>| Established |
-+--------------+---------------+----------+------------+-------------+
-```
-The `Established` state confirms the BGP session is active between the two Docker containers.
-
-#### **Section 4.2: Test Pod-to-Pod Communication**
-
-1.  **On `cluster1`**, deploy a test server pod:
     ```bash
-    kubectl config use-context kind-cluster1
-    kubectl run nginx-c1 --image=nginx
+    # --- Check from the OAI RAN Cluster ---
+    kubectl config use-context kind-oai-ran-cluster
+    CALICO_NODE_POD=$(kubectl get pods -n calico-system -l k8s-app=calico-node -o jsonpath='{.items[0].metadata.name}')
+    kubectl exec -n calico-system $CALICO_NODE_POD -- calico-node status
     ```
-    Get its IP address (it will be in the `10.10.x.x` range):
+    The output should show the peer as **`Established`**.
+
+    **Example Output:**
+    ```
+    Calico process is running.
+
+    IPv4 BGP status
+    +---------------+-----------+-------+----------+-------------+
+    |  PEER ADDRESS | PEER TYPE | STATE |  SINCE   |    INFO     |
+    +---------------+-----------+-------+----------+-------------+
+    | 172.18.0.3    | global    | up    | 15:35:01 | Established |
+    +---------------+-----------+-------+----------+-------------+
+    ```
+    If it shows `Active` or another state, re-check your node IPs, ASNs, and ensure there's no firewall interference.
+
+---
+
+### **Part 3: Test Pod-to-Pod Communication**
+
+This is the final test to confirm everything is working.
+
+1.  **On `oai-ran-cluster`**, create a test NGINX pod:
     ```bash
-    kubectl get pod nginx-c1 -o wide
-    # Example: NAME       ... IP            NODE
-    #          nginx-c1   ... 10.10.0.133   cluster1-control-plane
+    kubectl config use-context kind-oai-ran-cluster
+    kubectl run nginx-ran --image=nginx
+    ```
+    Wait for it to be running and get its IP address.
+    ```bash
+    # Wait until STATUS is 'Running'
+    watch kubectl get pod nginx-ran -o wide
+
+    # Get the IP and store it
+    POD_IP_RAN=$(kubectl get pod nginx-ran -o jsonpath='{.status.podIP}')
+    echo "NGINX Pod IP on RAN cluster: $POD_IP_RAN"
+    # Note the IP, it will be in the 10.20.x.x range
     ```
 
-2.  **On `cluster2`**, deploy a temporary client pod:
+2.  **On `open5gs-core-cluster`**, run a temporary busybox pod for testing:
     ```bash
-    kubectl config use-context kind-cluster2
-    kubectl run busybox-c2 --image=busybox -it --rm -- /bin/sh
-    ```
+    kubectl config use-context kind-open5gs-core-cluster
+    kubectl run busybox-core --image=busybox -it --rm -- /bin/sh
+    ```    This will drop you into a shell inside a pod on the core cluster.
 
-3.  **From inside the `busybox-c2` shell**, ping the pod in the other cluster using its direct IP:
+3.  **From inside the `busybox-core` pod,** ping the `nginx-ran` pod on the other cluster using the IP you just noted.
     ```sh
-    # ping <IP_of_nginx-c1>
-    ping 10.10.0.133
+    # This command is run inside the busybox pod's shell
+    # Replace the IP with the one you got in step 1
+    ping $POD_IP_RAN
+    ```
+    **Example:**
+    ```sh
+    / # ping 10.20.183.65
+    PING 10.20.183.65 (10.20.183.65): 56 data bytes
+    64 bytes from 10.20.183.65: seq=0 ttl=62 time=0.692 ms
+    64 bytes from 10.20.183.65: seq=1 ttl=62 time=0.455 ms
+    ...
     ```
 
-Successful `PING` replies demonstrate that you have achieved direct, non-encapsulated, cross-cluster pod networking using a fast, stable, and easily managed Kind-based lab environment.
+If you see ping replies, you have successfully configured cross-cluster networking with Calico and BGP on `kind`. You have direct, non-encapsulated routing between pods in separate Kubernetes clusters running on the same host machine.
+
+### **Cleanup**
+
+To tear down the environment, simply delete the `kind` clusters.
+
+```bash
+kind delete cluster --name oai-ran-cluster
+kind delete cluster --name open5gs-core-cluster
+```

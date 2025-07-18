@@ -8,97 +8,81 @@
         "type": "tabs",
         "children": [
           {
-            "id": "5cee37a77988cffe",
+            "id": "07d4a4e2c6560508",
             "type": "leaf",
             "pinned": true,
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Calico BGP setup guide.md",
+                "file": "IP-CAL-CIBN.md",
                 "mode": "source",
                 "source": false
               },
               "pinned": true,
               "icon": "lucide-file",
-              "title": "Calico BGP setup guide"
+              "title": "IP-CAL-CIBN"
             }
           },
           {
-            "id": "69036582189d4411",
+            "id": "e6b085a32e2d403f",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "A Comprehensive Guide to Setting Up an End-to-End VM-Based 5G Network with OAI and Open5GS.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "A Comprehensive Guide to Setting Up an End-to-End VM-Based 5G Network with OAI and Open5GS"
+            }
+          },
+          {
+            "id": "be0d598355177094",
             "type": "leaf",
             "pinned": true,
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Calico BGP setup using Vagrant.md",
+                "file": "Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL.md",
+                "mode": "source",
+                "source": false
+              },
+              "pinned": true,
+              "icon": "lucide-file",
+              "title": "Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL"
+            }
+          },
+          {
+            "id": "b7226b686936de48",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "possible fix for error oai start comp.md",
                 "mode": "preview",
                 "source": false
               },
-              "pinned": true,
               "icon": "lucide-file",
-              "title": "Calico BGP setup using Vagrant"
+              "title": "possible fix for error oai start comp"
             }
           },
           {
-            "id": "d789cdcb643168b4",
+            "id": "34e2161d722d9f54",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Building OAI.md",
-                "mode": "preview",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Building OAI"
-            }
-          },
-          {
-            "id": "af844706b7cd401b",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "OAI setup vagrant.md",
+                "file": "Note from Vishal.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "OAI setup vagrant"
-            }
-          },
-          {
-            "id": "91a4c01c0c1729f7",
-            "type": "leaf",
-            "pinned": true,
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Building OAI in VM using vagrant.md",
-                "mode": "source",
-                "source": false
-              },
-              "pinned": true,
-              "icon": "lucide-file",
-              "title": "Building OAI in VM using vagrant"
-            }
-          },
-          {
-            "id": "902ba1ebbfee9b44",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Building OAI docker images.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Building OAI docker images"
+              "title": "Note from Vishal"
             }
           }
         ],
-        "currentTab": 5
+        "currentTab": 3
       }
     ],
     "direction": "vertical"
@@ -148,7 +132,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "open",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -191,13 +175,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Building OAI docker images.md",
+                "file": "Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of Building OAI docker images"
+              "title": "Outline of Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL"
             }
           },
           {
@@ -206,7 +190,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Calico BGP setup using GKE.md",
+                "file": "A Comprehensive Guide to Setting Up an End-to-End VM-Based 5G Network with OAI and Open5GS.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -216,7 +200,7 @@
                 "unlinkedCollapsed": true
               },
               "icon": "links-coming-in",
-              "title": "Backlinks for Calico BGP setup using GKE"
+              "title": "Backlinks for A Comprehensive Guide to Setting Up an End-to-End VM-Based 5G Network with OAI and Open5GS"
             }
           },
           {
@@ -225,12 +209,12 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "prerequisites.md",
+                "file": "Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               },
               "icon": "links-going-out",
-              "title": "Outgoing links from prerequisites"
+              "title": "Outgoing links from Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL"
             }
           },
           {
@@ -252,7 +236,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 271.5
+    "width": 271.5,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -264,39 +249,39 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "902ba1ebbfee9b44",
+  "active": "b7226b686936de48",
   "lastOpenFiles": [
-    "Building OAI in VM using vagrant.md",
-    "OAI setup vagrant.md",
-    "Building OAI docker images.md",
+    "Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL.md",
+    "Note from Vishal.md",
+    "possible fix for error oai start comp.md",
+    "A Comprehensive Guide to Setting Up an End-to-End VM-Based 5G Network with OAI and Open5GS.md",
     "Building OAI.md",
     "Calico BGP setup using Vagrant.md",
+    "A Comprehensive Guide to Setting Up an End-to-End VM-Based 5G Network with OAI and Open5GS-IN-8KBKXD3-2.md",
+    "A Comprehensive Guide to Setting Up an End-to-End VM-Based 5G Network with OAI and Open5GS-IN-8KBKXD3.md",
+    "Calico BGP setup using GKE.md",
+    "Calico BGP setup guide.md",
+    "IP-CAL-CIBN.md",
+    "Issues & Resolution.md",
+    "Calico BGP setup using KIND.md",
+    "Calico handson in WSL.md",
+    "Calico handson.md",
+    "k8s oai depl cm svc files.md",
+    "OAI setup vagrant.md",
+    "OAI yaml explanations.md",
+    "Building OAI docker images.md",
+    "Building OAI in VM using vagrant.md",
     "Pasted image 20250709131327.png",
     "Prerequisites.md",
-    "IP-CAL-CIBN.md",
-    "Note from Vishal.md",
     "open5gs setup in vagrant.md",
     "OAI and Open5gs setup.md",
     "CNI Deep Dive with Calico.md",
-    "Calico BGP setup guide.md",
     "Untitled.md",
     "The Network Plumbing- Calico CNI and BGP Peering.md",
     "Pasted image 20250704154923.png",
-    "Detailed explaination of BGP installation.md",
-    "Calico BGP setup using KIND.md",
-    "Calico BGP setup using GKE.md",
-    "Kubeadm Installation Guide.md",
-    "IP range assignment.md",
-    "Detailed explanation of BGP installation.md",
     "Pasted image 20250704155326.png",
     "Pasted image 20250704155222.png",
-    "Calico handson in WSL.md",
-    "Commands.md",
-    "Kubernetes services.md",
-    "DNAT & SNAT.md",
-    "NodePort vs LoadBalancer.md",
     "Pasted image 20250701122614.png",
-    "Kubernetes Network Policies.md",
     "Pasted image 20250701124728.png",
     "mermaid-diagram-2025-07-01-121814 1.svg",
     "mermaid-diagram-2025-07-01-121814.svg",

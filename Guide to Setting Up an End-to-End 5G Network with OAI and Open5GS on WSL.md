@@ -43,26 +43,7 @@ sudo apt install -y nodejs
 git clone https://github.com/open5gs/open5gs.git
 ```
 
-Configure the WebUI : Modify `open5gs/webui/server/index.js` to listen on all interfaces.
-```js
-const hostname = process.env.HOSTNAME || '0.0.0.0';
-```
 
-Then run the WebUI:
-```bash
-cd open5gs/webui
-npm install
-npm run dev --host 0.0.0.0
-
-# sudo systemctl start mongod  # to start mongod if not running
-# sudo systemctl status mongod
-```
-
-**Register a new subscriber:**
-    Access the WebUI at `http://<vm_ip>:9999` like `http://172.28.251.212:9999` (login: `admin`, password: `1423`). Add a new subscriber with the following details:
-        *   **IMSI:** `999700000000001`
-        *   **Subscriber Key (K):** `465B5CE8B199B49FAA5F0A2EE238A6BC`
-        *   **Operator Key (OPc):** `E8ED289DEBA952E4283B54E88E6183CA`
 #### **2.2. Install OAI (gNB and nrUE)**
 
 The OAI installation involves cloning the source code, patching it to fix known build issues, and then compiling the executables.
@@ -389,6 +370,12 @@ nssf:
 #### **3.3. Add a Subscriber in Open5GS WebUI**
 
 Before the UE can connect, you must register it as a subscriber in the core network.
+
+Configure the WebUI : Modify `open5gs/webui/server/index.js` to listen on all interfaces.
+```js
+const hostname = process.env.HOSTNAME || '0.0.0.0';
+```
+
 
 1.  **Start the WebUI Server:**
     ```bash
@@ -848,6 +835,8 @@ Navigate to the OAI build directory.
 ```bash
 cd oai/cmake_targets/ran_build/build
 sudo ./nr-uesoftmodem -O /etc/oai/nr-ue.conf --rfsim --sa --nokrnmod 
+
+sudo ./nr-uesoftmodem -r 106 --numerology 1 --band 48 -C 3619200000 --rfsim --rfsimulator.serveraddr 172.28.251.212 -O /etc/oai/nr-ue.conf
 ```
 The UE will now attempt to connect to the DU via the RF simulator, and the registration process with the 5G core will begin.
 

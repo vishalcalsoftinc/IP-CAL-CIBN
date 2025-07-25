@@ -2,9 +2,12 @@
 ---
  - overview
  - [[Prerequisites]]
+ - [[5G Network Slicing]]
+ - 
 
 ---
-- [[A Comprehensive Guide to Setting Up an End-to-End VM-Based 5G Network with OAI and Open5GS]]
+## DEPLOYMENTS
+- [[Deploying 5G Core Network with Open5GS and UERANSIM]]
 - 
 
 ---

@@ -90,7 +90,7 @@ The setup consists of five key components distributed across five virtual machin
     sudo sysctl -w net.ipv4.ip_forward=1
 
     # 2. Add a NAT rule (replace ens34 if your interface is different)
-    sudo iptables -t nat -A POSTROUTING -s 10.45.0.0/16 -o ens34 -j MASQUERADE
+    sudo iptables -t nat -A POSTROUTING -s 10.45.0.0/16 -o enp0s3 -j MASQUERADE
 
     # 3. Stop the firewall to avoid blocking traffic during setup
     sudo systemctl stop ufw

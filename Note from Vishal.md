@@ -108,10 +108,65 @@ Added a subcriber with webui
 Build OAI components
 wrote the OAI (cucp , cuup , du , nr-ue) conf files
 ran OAI with the above conf ( failed )
-
-
 Studying for semtech embedded 
 
 18-7
+Assigned to create a demo 5g setup with UERANSIM and Open5gs
+
 Studying for semtech embedded 
+
+
+This is a challenging reply from your manager, but it's not a definitive "no" yet. The phrase "will discuss" is your small window of opportunity. The key is to respond in a way that is polite, firm about your constraint, and focused on finding a solution.
+
+You need to address his two main points: the project's need for "presence" and the "company policy."
+
+Here are a few options for your reply, from most recommended to more direct.
+
+---
+
+### Option 1: The Collaborative & Proactive Approach (Highly Recommended)
+
+This approach thanks him, reiterates your position, and proactively suggests a solution to his "presence" concern. This shows you are a problem-solver.
+
+**"Thank you for the quick reply and for your willingness to discuss this, Vishal. I appreciate you explaining the project and policy requirements.**
+
+**I want to reiterate that I am very enthusiastic about the Semtech project. Unfortunately, my family situation in Kolkata is inflexible at this time, making relocation genuinely impossible for me.**
+
+**To address the need for 'presence,' I am more than willing to travel to Pune for key project milestones, like kick-offs, important workshops, or integration phases. For day-to-day work, I am confident I can establish a strong virtual presence through dedicated communication and collaboration with the team.**
+
+**Could we have a brief call to discuss this possibility? I am hopeful we can find a solution that works for the project and allows me to contribute effectively."**
+
+**Why this works:**
+*   **Polite & Appreciative:** You start by thanking him.
+*   **Firm but Professional:** You state that relocation is "genuinely impossible" without being demanding.
+*   **Offers a Compromise:** The offer to travel is a powerful negotiating tool. It shows you are willing to meet him halfway.
+*   **Proposes a Solution:** You are actively trying to solve the problem of "presence."
+*   **Clear Call to Action:** You ask for a call to discuss it further.
+
+---
+
+### Option 2: The More Direct & Simple Approach
+
+This is a shorter version if you prefer to be more to the point.
+
+"Thanks for the context, Vishal. I understand the preference for on-site work. Given my situation, relocation isn't an option for me. Is there any flexibility in the company policy for a remote arrangement, perhaps with occasional travel to Pune for important meetings? I'm very keen to make this work and am confident I can be a valuable member of the Semtech team from Kolkata."
+
+**Why this works:**
+*   **Concise:** Gets straight to the point.
+*   **Asks about Policy Flexibility:** Directly but politely questions the rigidity of the policy.
+*   **Reiterates Value:** Reminds him you want to be a valuable contributor.
+
+---
+
+### Option 3: The "Final Stance" Approach (Use if you are prepared to lose the opportunity)
+
+This is the most direct option and should be used if you've decided that if they don't bend, you will have to decline.
+
+**"I appreciate the clarification, Vishal. Since I am unable to relocate due to my personal responsibilities, I will unfortunately have to decline the opportunity if the on-site requirement in Pune is non-negotiable. If any flexibility becomes possible, please let me know as I remain very interested in the project."**
+
+**Why to be cautious with this:**
+*   **Closes the Door:** This sounds more like an ultimatum and may end the discussion.
+*   **Less Collaborative:** It doesn't offer solutions, it just states a condition.
+
+**My strong recommendation is to use Option 1.** It keeps the conversation alive, shows your commitment, and frames you as a flexible and proactive employee who is trying to find a solution that benefits everyone.
 

@@ -74,7 +74,7 @@
               "type": "markdown",
               "state": {
                 "file": "Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL.md",
-                "mode": "source",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
@@ -235,7 +235,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 258.5
+    "width": 258.5,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -250,9 +251,9 @@
   "active": "9efbf418cfed0c07",
   "lastOpenFiles": [
     "A Comprehensive Guide to Setting Up an End-to-End VM-Based 5G Network with OAI and Open5GS.md",
+    "Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL.md",
     "Xn-based Handover Procedure.md",
     "Study on 4G and 5G Handover Mechanisms.md",
-    "Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL.md",
     "Deploying 5G Core Network with Open5GS and UERANSIM.md",
     "IP-CAL-CIBN.md",
     "S1-based Handover.md",

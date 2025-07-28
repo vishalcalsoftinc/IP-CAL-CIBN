@@ -452,8 +452,7 @@ gNBs =
     NETWORK_INTERFACES = {
       GNB_IPV4_ADDRESS_FOR_NG_AMF = "172.28.251.212"; # NGAP interface to AMF
       GNB_IPV4_ADDRESS_FOR_NGU = "172.28.251.212";    # NGU interface (forwarded to CU-UP)
-      # GNB_PORT_FOR_NGU = 2152;
-      GNB_PORT_FOR_S1U = 2152; 
+      GNB_PORT_FOR_NGU = 2152;
     };
   }
 );
@@ -475,14 +474,14 @@ security = {
 # Logging Configuration
 log_config: {
   global_log_level = "info";
-  hw_log_level = "info"; 
-  phy_log_level = "info"; 
-  mac_log_level = "info"; 
-  rlc_log_level = "info"; 
-  pdcp_log_level = "info"; 
-  rrc_log_level = "info"; 
-  f1ap_log_level = "info"; 
-  ngap_log_level = "info"; 
+  hw_log_level = "info";
+  phy_log_level = "info";
+  mac_log_level = "info";
+  rlc_log_level = "info";
+  pdcp_log_level = "info";
+  rrc_log_level = "info";
+  f1ap_log_level = "info";
+  ngap_log_level = "info";
   sctp_log_level = "info";
 };
 ```
@@ -882,20 +881,59 @@ Open **five separate WSL terminals**. Each component must be run in its own term
 
 **Terminal 1: Start Open5GS Core**
 ```bash
-# Start all required Open5GS services individually 
-sudo systemctl start open5gs-nrfd 
-sudo systemctl start open5gs-udmd 
-sudo systemctl start open5gs-ausfd 
-sudo systemctl start open5gs-udrd 
-sudo systemctl start open5gs-pcfd 
-sudo systemctl start open5gs-smfd 
-sudo systemctl start open5gs-amfd 
-sudo systemctl start open5gs-upfd 
+# MongoDB (if using local database)  
+sudo systemctl start mongodb
+
+# Start Open5GS core components  
+sudo systemctl start open5gs-mmed  
+sudo systemctl start open5gs-sgwcd  
+sudo systemctl start open5gs-smfd  
+sudo systemctl start open5gs-amfd  
+sudo systemctl start open5gs-upfd  
+sudo systemctl start open5gs-pcfd  
+sudo systemctl start open5gs-ausfd  
+sudo systemctl start open5gs-nrfd  
+sudo systemctl start open5gs-nssfd  
+sudo systemctl start open5gs-bsfd  
+sudo systemctl start open5gs-udmd  
+sudo systemctl start open5gs-udrd  
+sudo systemctl start open5gs-pcfd
 
 # Verify that all services are running 
 sudo systemctl status open5gs-*
 ```
 Wait for the core network to initialize completely. You can check the status with `sudo systemctl status open5gs-amfd`.
+
+4.  **Add a Subscriber via Open5GS WebUI:**
+
+    *   **Install WebUI dependencies and clone the repository:**
+        ```bash
+        # Install Node.js
+        sudo apt update
+        sudo apt install curl
+        curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+        sudo apt install nodejs
+
+        # Clone the webui
+        git clone https://github.com/open5gs/open5gs.git
+        ```
+
+    *   **Configure and run the WebUI:**
+        Modify `open5gs/webui/server/index.js` to listen on all interfaces.
+        ```javascript
+        const hostname = process.env.HOSTNAME || '0.0.0.0';
+        ```
+        Then, run the WebUI:
+        ```bash
+        cd open5gs/webui
+        npm run dev --host 0.0.0.0
+        ```
+
+    *   **Register a new subscriber:**
+        Access the WebUI at `http://<vm_ip>:9999` (login: `admin`, password: `1423`). Add a new subscriber with the following details:
+        *   **IMSI:** `999700000000001`
+        *   **Subscriber Key (K):** `465B5CE8B199B49FAA5F0A2EE238A6BC`
+        *   **Operator Key (OPc):** `E8ED289DEBA952E4283B54E88E6183CA`
 
 
 **Terminal 2: Start OAI CU-CP**

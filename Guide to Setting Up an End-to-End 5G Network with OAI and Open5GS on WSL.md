@@ -91,7 +91,7 @@ cd cmake_targets
 ./build_oai -I
 
 # Remove the conflicting package
-sudo apt remove -y libyaml-cpp-dev && sudo apt autoremove -y
+sudo apt remove --y libyaml-cppdev && sudo apt autoremove -y
 
 # Build the gNB (CU/DU) components
 ./build_oai -w SIMU --gNB --ninja
@@ -452,7 +452,8 @@ gNBs =
     NETWORK_INTERFACES = {
       GNB_IPV4_ADDRESS_FOR_NG_AMF = "172.28.251.212"; # NGAP interface to AMF
       GNB_IPV4_ADDRESS_FOR_NGU = "172.28.251.212";    # NGU interface (forwarded to CU-UP)
-      GNB_PORT_FOR_NGU = 2152;
+      # GNB_PORT_FOR_NGU = 2152;
+      GNB_PORT_FOR_S1U = 2152; 
     };
   }
 );
@@ -560,171 +561,260 @@ log_config: {
 This file configures the Distributed Unit (DU), which handles the lower layers of the radio protocol stack and communicates with the CU via the F1 interface.
 
 ```conf
-# Active gNodeB DU instance name
-Active_gNBs = ( "oai-du" );
+Active_gNBs = ( "oai-cu-cp");
+# Asn1_verbosity, choice in: none, info, annoying
 Asn1_verbosity = "info";
 
 gNBs =
 (
  {
-    # Identifiers for the gNodeB and this specific DU
-    gNB_ID = 0xe01;
+    ////////// Identification parameters:
+    gNB_ID = 0xe00;
     gNB_DU_ID = 0xe01;
-    gNB_name = "oai-du";
 
-    # PLMN and Slice Information
-    plmn_list = ({
-      mcc = 999;
-      mnc = 70;
-      mnc_length = 2;
-      snssaiList = ({ sst = 1; sd = 0xffffff; },{ sst = 2; sd = 0x111111; });
-    });
+#     cell_type =  "CELL_MACRO_GNB";
 
-    # Tracking Area and Cell Identity
-    tracking_area_code = 1;
-    nr_cellid = 12345688L;
-    min_rxtxtime = 6;
+    gNB_name  =  "oai-cu-cp";
 
-    # Physical Cell Configuration (Example for band n78)
-    servingCellConfigCommon = {
-      # spCellConfigCommon 
-      physCellId = 1; 
-      
-      # downlinkConfigCommon 
-      absoluteFrequencySSB = 641280; 
-      dl_frequencyBand = 78; 
-      dl_absoluteFrequencyPointA = 640008; 
-      dl_offstToCarrier = 0; 
-      dl_subcarrierSpacing = 1; 
-      dl_carrierBandwidth = 106; 
-      initialDLBWPlocationAndBandwidth = 28875; 
-      initialDLBWPsubcarrierSpacing = 1; 
-      initialDLBWPcontrolResourceSetZero = 12; 
-      initialDLBWPsearchSpaceZero = 0;
-      
-      # uplinkConfigCommon 
-      ul_frequencyBand = 78; 
-      ul_offstToCarrier = 0; 
-      ul_subcarrierSpacing = 1; 
-      ul_carrierBandwidth = 106; 
-      pMax = 20; 
-      initialULBWPlocationAndBandwidth = 28875; 
-      initialULBWPsubcarrierSpacing = 1;
-      
-      prach_ConfigurationIndex = 98; 
-      prach_msg1_FDM = 0; 
-      prach_msg1_FrequencyStart = 0; 
-      zeroCorrelationZoneConfig = 13; 
-      preambleReceivedTargetPower = -96; 
-      preambleTransMax = 6; 
-      powerRampingStep = 1; 
-      ra_ResponseWindow = 4;      
-      ssb_perRACH_OccasionAndCB_PreamblesPerSSB_PR = 4; 
-      ssb_perRACH_OccasionAndCB_PreamblesPerSSB = 14; 
-      ra_ContentionResolutionTimer = 7; 
-      rsrp_ThresholdSSB = 19; 
-      prach_RootSequenceIndex_PR = 2; 
-      prach_RootSequenceIndex = 1; 
-      msg1_SubcarrierSpacing = 1; 
-      restrictedSetConfig = 0; 
-      msg3_DeltaPreamble = 1; 
-      p0_NominalWithGrant = -90;
-      
-      pucchGroupHopping = 0; 
-      hoppingId = 40; 
-      p0_nominal = -90; 
-      ssb_PositionsInBurst_Bitmap = 1; 
-      ssb_periodicityServingCell = 2; 
-      dmrs_TypeA_Position = 0; 
-      subcarrierSpacing = 1; 
-      referenceSubcarrierSpacing = 1; 
-      dl_UL_TransmissionPeriodicity = 6; 
-      nrofDownlinkSlots = 7; 
-      nrofDownlinkSymbols = 6; 
-      nrofUplinkSlots = 2; 
-      nrofUplinkSymbols = 4; 
-      ssPBCH_BlockPower = -25;
+    // Tracking area code, 0x0000 and 0xfffe are reserved values
+    tracking_area_code  =  1;
+    #plmn_list = ({ mcc = 208; mnc = 99; mnc_length = 2; snssaiList = ({ sst = 1 }, { sst = 2 }, { sst = 3 } ) });
+    plmn_list = ({ mcc = 999; mnc = 70; mnc_length = 2; snssaiList =  ({ sst = 1, sd = 0xffffff },{ sst = 2; sd = 0x111111; }) });
+
+
+    nr_cellid = 12345678L;
+
+    ////////// Physical parameters:
+
+    min_rxtxtime                                              = 6;
+
+    servingCellConfigCommon = (
+    {
+ #spCellConfigCommon
+
+      physCellId                                                    = 0;
+
+#  downlinkConfigCommon
+    #frequencyInfoDL
+      # this is 3600 MHz + 43 PRBs@30kHz SCS (same as initial BWP)
+      absoluteFrequencySSB                                          = 641280;
+      dl_frequencyBand                                                 = 78;
+      # this is 3600 MHz
+      dl_absoluteFrequencyPointA                                       = 640008;
+      #scs-SpecificCarrierList
+        dl_offstToCarrier                                              = 0;
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
+        dl_subcarrierSpacing                                           = 1;
+        dl_carrierBandwidth                                            = 106;
+     #initialDownlinkBWP
+      #genericParameters
+        # this is RBstart=27,L=48 (275*(L-1))+RBstart
+        initialDLBWPlocationAndBandwidth                               = 28875; # 6366 12925 12956 28875 12952
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
+        initialDLBWPsubcarrierSpacing                                           = 1;
+      #pdcch-ConfigCommon
+        initialDLBWPcontrolResourceSetZero                              = 12;
+        initialDLBWPsearchSpaceZero                                             = 0;
+
+  #uplinkConfigCommon
+     #frequencyInfoUL
+      ul_frequencyBand                                                 = 78;
+      #scs-SpecificCarrierList
+      ul_offstToCarrier                                              = 0;
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
+      ul_subcarrierSpacing                                           = 1;
+      ul_carrierBandwidth                                            = 106;
+      pMax                                                          = 20;
+     #initialUplinkBWP
+      #genericParameters
+        initialULBWPlocationAndBandwidth                            = 28875;
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
+        initialULBWPsubcarrierSpacing                                           = 1;
+      #rach-ConfigCommon
+        #rach-ConfigGeneric
+          prach_ConfigurationIndex                                  = 98;
+#prach_msg1_FDM
+#0 = one, 1=two, 2=four, 3=eight
+          prach_msg1_FDM                                            = 0;
+          prach_msg1_FrequencyStart                                 = 0;
+          zeroCorrelationZoneConfig                                 = 13;
+          preambleReceivedTargetPower                               = -96;
+#preamblTransMax (0...10) = (3,4,5,6,7,8,10,20,50,100,200)
+          preambleTransMax                                          = 6;
+#powerRampingStep
+# 0=dB0,1=dB2,2=dB4,3=dB6
+        powerRampingStep                                            = 1;
+#ra_ReponseWindow
+#1,2,4,8,10,20,40,80
+        ra_ResponseWindow                                           = 4;
+#ssb_perRACH_OccasionAndCB_PreamblesPerSSB_PR
+#1=oneeighth,2=onefourth,3=half,4=one,5=two,6=four,7=eight,8=sixteen
+        ssb_perRACH_OccasionAndCB_PreamblesPerSSB_PR                = 4;
+#one (0..15) 4,8,12,16,...60,64
+        ssb_perRACH_OccasionAndCB_PreamblesPerSSB                   = 14;
+#ra_ContentionResolutionTimer
+#(0..7) 8,16,24,32,40,48,56,64
+        ra_ContentionResolutionTimer                                = 7;
+        rsrp_ThresholdSSB                                           = 19;
+#prach-RootSequenceIndex_PR
+#1 = 839, 2 = 139
+        prach_RootSequenceIndex_PR                                  = 2;
+        prach_RootSequenceIndex                                     = 1;
+        # SCS for msg1, can only be 15 for 30 kHz < 6 GHz, takes precendence over the one derived from prach-ConfigIndex
+        #
+        msg1_SubcarrierSpacing                                      = 1,
+# restrictedSetConfig
+# 0=unrestricted, 1=restricted type A, 2=restricted type B
+        restrictedSetConfig                                         = 0,
+
+        msg3_DeltaPreamble                                          = 1;
+        p0_NominalWithGrant                                         =-90;
+
+# pucch-ConfigCommon setup :
+# pucchGroupHopping
+# 0 = neither, 1= group hopping, 2=sequence hopping
+        pucchGroupHopping                                           = 0;
+        hoppingId                                                   = 40;
+        p0_nominal                                                  = -90;
+
+      ssb_PositionsInBurst_Bitmap                                   = 1;
+
+# ssb_periodicityServingCell
+# 0 = ms5, 1=ms10, 2=ms20, 3=ms40, 4=ms80, 5=ms160, 6=spare2, 7=spare1
+      ssb_periodicityServingCell                                    = 2;
+
+# dmrs_TypeA_position
+# 0 = pos2, 1 = pos3
+      dmrs_TypeA_Position                                           = 0;
+
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
+      subcarrierSpacing                                             = 1;
+
+
+  #tdd-UL-DL-ConfigurationCommon
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
+      referenceSubcarrierSpacing                                    = 1;
+      # pattern1
+      # dl_UL_TransmissionPeriodicity
+      # 0=ms0p5, 1=ms0p625, 2=ms1, 3=ms1p25, 4=ms2, 5=ms2p5, 6=ms5, 7=ms10
+      dl_UL_TransmissionPeriodicity                                 = 6;
+      nrofDownlinkSlots                                             = 7;
+      nrofDownlinkSymbols                                           = 6;
+      nrofUplinkSlots                                               = 2;
+      nrofUplinkSymbols                                             = 4;
+
+      ssPBCH_BlockPower                                             = -25;
+     }
+
+  );
+
+
+    # ------- SCTP definitions
+    SCTP :
+    {
+        # Number of streams to use in input/output
+        SCTP_INSTREAMS  = 2;
+        SCTP_OUTSTREAMS = 2;
     };
- }
-);
-
-# SCTP Protocol Parameters
-SCTP: {
-  SCTP_INSTREAMS  = 5;
-  SCTP_OUTSTREAMS = 5;
-};
-
-# MAC/RLC Layer Configuration
-MACRLCs = (
-  {
-    num_cc = 1; # Number of component carriers
-    tr_s_preference = "local_L1";
-    tr_n_preference = "f1"; # Use F1 interface for transport to CU
-    
-    # F1 Interface network details
-    local_n_address = "172.28.251.212";   # DU F1 IP address
-    remote_n_address = "172.28.251.212";  # CU F1 IP address
-    local_n_portc = 500;                  # F1-C (Control) port
-    remote_n_portc = 501;
-    local_n_portd = 2153;                  # F1-U (User) port
-    remote_n_portd = 2154;
-    
-    pusch_TargetSNRx10 = 200; 
-    pucch_TargetSNRx10 = 200;
   }
 );
 
-L1s = ( 
-  { 
-    num_cc = 1; 
-    tr_n_preference = "local_mac"; 
-    prach_dtx_threshold = 200; 
-    pucch0_dtx_threshold = 150; 
-    ofdm_offset_divisor = 8; # set this to UINT_MAX for offset 0 
-  } 
+MACRLCs = (
+  {
+    num_cc           = 1;
+    tr_s_preference  = "local_L1";
+    tr_n_preference  = "f1";
+    local_n_address = "172.28.251.212";
+    remote_n_address = "172.28.251.212";
+    local_n_portc   = 500;
+    local_n_portd   = 2153;
+    remote_n_portc  = 501;
+    remote_n_portd  = 2154;
+    pusch_TargetSNRx10          = 200;
+    pucch_TargetSNRx10          = 200;
+  }
 );
 
-# RF Simulator Configuration (used instead of a physical radio)
-rfsimulator: {
-  serveraddr = "server"; # Run in server mode to accept UE connections
-  serverport = 4043;
-  options = (); # ("saviq"); or/and "chanmod"
-  modelname = "AWGN";
-  IQfile = "/tmp/rfsimulator.iqs";
-};
+L1s = (
+{
+  num_cc = 1;
+  tr_n_preference = "local_mac";
+  prach_dtx_threshold = 200;
+  pucch0_dtx_threshold = 150;
+  ofdm_offset_divisor = 8; #set this to UINT_MAX for offset 0
+}
+);
 
-# Logging Configuration
+RUs = (
+    {
+       local_rf       = "yes"
+         nb_tx          = 1
+         nb_rx          = 1
+         att_tx         = 0
+         att_rx         = 0;
+         bands          = [78];
+         max_pdschReferenceSignalPower = -27;
+         max_rxgain                    = 114;
+         eNB_instances  = [0];
+         clock_src = "internal";
+    }
+);
+
+rfsimulator: {
+serveraddr = "server";
+    serverport = 4043;
+    options = (); #("saviq"); or/and "chanmod"
+    modelname = "AWGN";
+    IQfile = "/tmp/rfsimulator.iqs"
+}
+
 log_config: {
   global_log_level = "info";
-  hw_log_level = "info"; 
-  phy_log_level = "info"; 
-  mac_log_level = "info"; 
-  rlc_log_level = "info"; 
+  hw_log_level = "info";
+  phy_log_level = "info";
+  mac_log_level = "info";
+  rlc_log_level = "info";
   f1ap_log_level = "info";
 };
 
-channelmod = {     
-    max_chan = 10; 
-    modellist = "modellist_rfsimu_1"; 
-    modellist_rfsimu_1 = ( { 
-      model_name = "rfsimu_channel_enB0"; 
-      type = "AWGN"; 
-      ploss_dB = 20; 
-      noise_power_dB = -4; 
-      forgetfact = 0; 
-      offset = 0; 
-      ds_tdl = 0; 
-    }, { 
-      model_name = "rfsimu_channel_ue0"; 
-      type = "AWGN"; 
-      ploss_dB = 20; 
-      noise_power_dB = -2; 
-      forgetfact = 0; 
-      offset = 0; 
-      ds_tdl = 0;
-    } ); 
+#/* configuration for channel modelisation */
+#/* To be included in main config file when */
+#/* channel modelisation is used (rfsimulator with chanmod options enabled) */
+channelmod = {
+  max_chan = 10;
+  modellist = "modellist_rfsimu_1";
+  modellist_rfsimu_1 = (
+    { # DL, modify on UE side
+      model_name     = "rfsimu_channel_enB0"
+      type           = "AWGN";
+      ploss_dB       = 20;
+      noise_power_dB = -4;
+      forgetfact     = 0;
+      offset         = 0;
+      ds_tdl         = 0;
+    },
+    { # UL, modify on gNB side
+      model_name     = "rfsimu_channel_ue0"
+      type           = "AWGN";
+      ploss_dB       = 20;
+      noise_power_dB = -2;
+      forgetfact     = 0;
+      offset         = 0;
+      ds_tdl         = 0;
+    }
+  );
 };
 
+#e2_agent = {
+#  near_ric_ip_addr = "172.28.251.212";
+#  sm_dir = "/usr/local/lib/flexric/"
+#}
 
 ```
 
@@ -806,7 +896,7 @@ sudo systemctl start open5gs-upfd
 sudo systemctl status open5gs-*
 ```
 Wait for the core network to initialize completely. You can check the status with `sudo systemctl status open5gs-amfd`.
-![[Pasted image 20250717163554.png]]
+
 
 **Terminal 2: Start OAI CU-CP**
 Navigate to the OAI build directory first.
@@ -837,365 +927,21 @@ cd oai/cmake_targets/ran_build/build
 sudo ./nr-uesoftmodem -O /etc/oai/nr-ue.conf --rfsim --sa --nokrnmod 
 
 sudo ./nr-uesoftmodem -r 106 --numerology 1 --band 48 -C 3619200000 --rfsim --rfsimulator.serveraddr 172.28.251.212 -O /etc/oai/nr-ue.conf
+
+sudo ./nr-uesoftmodem \
+  -r 106 \
+  --numerology 1 \
+  --band 48 \
+  -C 3619200000 \
+  --ssb 516 \
+  --rfsim \
+  --rfsimulator.serveraddr 172.28.251.212 \
+  -O /etc/oai/nr-ue.conf
+
+sudo ./nr-uesoftmodem \ -r 106 \ --numerology 1 \ --band 78 \ -C 3619200000 \ --ssb 516 \ --rfsim \ --rfsimulator.serveraddr 172.28.251.212 \ -O /etc/oai/nr-ue.conf
+
 ```
 The UE will now attempt to connect to the DU via the RF simulator, and the registration process with the 5G core will begin.
-
-#### output :
-
-##### open5gs
-```bash
-user@IN-8KBKXD3:~$ sudo systemctl status open5gs-*
-● open5gs-amfd.service - Open5GS AMF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-amfd.service; >     Active: active (running) since Thu 2025-07-17 11:13:55 IST>   Main PID: 349 (open5gs-amfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 11.4M
-        CPU: 1.277s
-     CGroup: /system.slice/open5gs-amfd.service
-             └─349 /usr/bin/open5gs-amfd -c /etc/open5gs/amf.ya>
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.37>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.37>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.42>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.42>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.42>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.42>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.17>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.17>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.17>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.17>
-● open5gs-pcfd.service - Open5GS PCF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-pcfd.service; >     Active: active (running) since Thu 2025-07-17 11:13:58 IST>   Main PID: 556 (open5gs-pcfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 8.3M
-        CPU: 1.220s
-     CGroup: /system.slice/open5gs-pcfd.service
-             └─556 /usr/bin/open5gs-pcfd -c /etc/open5gs/pcf.ya>lines 1-30...skipping...
-● open5gs-amfd.service - Open5GS AMF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-amfd.service; enabled; vendor preset: enabled)
-     Active: active (running) since Thu 2025-07-17 11:13:55 IST; 5h 17min ago
-   Main PID: 349 (open5gs-amfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 11.4M
-        CPU: 1.277s
-     CGroup: /system.slice/open5gs-amfd.service
-             └─349 /usr/bin/open5gs-amfd -c /etc/open5gs/amf.yaml
-
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.375: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.375: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: [078e227c-62d1-41f0-ad35-b9f57b8e9d49] (NRF-notify) NF>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: [078e227c-62d1-41f0-ad35-b9f57b8e9d49] (NRF-notify) NF>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.4:80] (../lib/sbi/con>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.4:7777] (../lib/sbi/c>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.176: [sbi] INFO: [08acd55e-62d1-41f0-a6ec-7f31951e4806] (NRF-notify) NF>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: [08acd55e-62d1-41f0-a6ec-7f31951e4806] (NRF-notify) NF>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:80] (../lib/sbi/co>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:7777] (../lib/sbi/>
-● open5gs-pcfd.service - Open5GS PCF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-pcfd.service; enabled; vendor preset: enabled)
-     Active: active (running) since Thu 2025-07-17 11:13:58 IST; 5h 17min ago
-   Main PID: 556 (open5gs-pcfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 8.3M
-        CPU: 1.220s
-     CGroup: /system.slice/open5gs-pcfd.service
-             └─556 /usr/bin/open5gs-pcfd -c /etc/open5gs/pcf.yaml
-
-lines 1-31...skipping...
-● open5gs-amfd.service - Open5GS AMF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-amfd.service; enabled; vendor preset: enabled)
-     Active: active (running) since Thu 2025-07-17 11:13:55 IST; 5h 17min ago
-   Main PID: 349 (open5gs-amfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 11.4M
-        CPU: 1.277s
-     CGroup: /system.slice/open5gs-amfd.service
-             └─349 /usr/bin/open5gs-amfd -c /etc/open5gs/amf.yaml
-
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.375: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.375: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: [078e227c-62d1-41f0-ad35-b9f57b8e9d49] (NRF-notify) NF registered>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: [078e227c-62d1-41f0-ad35-b9f57b8e9d49] (NRF-notify) NF Profile up>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.4:80] (../lib/sbi/context.c:2374)Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.4:7777] (../lib/sbi/context.c:21>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.176: [sbi] INFO: [08acd55e-62d1-41f0-a6ec-7f31951e4806] (NRF-notify) NF registered>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: [08acd55e-62d1-41f0-a6ec-7f31951e4806] (NRF-notify) NF Profile up>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:80] (../lib/sbi/context.c:237>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:7777] (../lib/sbi/context.c:2>
-● open5gs-pcfd.service - Open5GS PCF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-pcfd.service; enabled; vendor preset: enabled)
-     Active: active (running) since Thu 2025-07-17 11:13:58 IST; 5h 17min ago
-   Main PID: 556 (open5gs-pcfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 8.3M
-        CPU: 1.220s
-     CGroup: /system.slice/open5gs-pcfd.service
-             └─556 /usr/bin/open5gs-pcfd -c /etc/open5gs/pcf.yaml
-
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.179: [sbi] INFO: [08adf402-62d1-41f0-93f4-27646812f29b] Subscription created until>Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: [0761b570-62d1-41f0-b1d7-f917a6192bc5] (NRF-profile-get) NF regis>lines 1-33...skipping...● open5gs-amfd.service - Open5GS AMF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-amfd.service; enabled; vendor preset: enabled)
-     Active: active (running) since Thu 2025-07-17 11:13:55 IST; 5h 17min ago
-   Main PID: 349 (open5gs-amfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 11.4M
-        CPU: 1.277s
-     CGroup: /system.slice/open5gs-amfd.service
-             └─349 /usr/bin/open5gs-amfd -c /etc/open5gs/amf.yaml
-
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.375: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.375: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: [078e227c-62d1-41f0-ad35-b9f57b8e9d49] (NRF-notify) NF registered (../lib/sbi>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: [078e227c-62d1-41f0-ad35-b9f57b8e9d49] (NRF-notify) NF Profile updated [type:>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.4:80] (../lib/sbi/context.c:2374)
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.4:7777] (../lib/sbi/context.c:2113)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.176: [sbi] INFO: [08acd55e-62d1-41f0-a6ec-7f31951e4806] (NRF-notify) NF registered (../lib/sbi>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: [08acd55e-62d1-41f0-a6ec-7f31951e4806] (NRF-notify) NF Profile updated [type:>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:80] (../lib/sbi/context.c:2374)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:7777] (../lib/sbi/context.c:2113)
-
-● open5gs-pcfd.service - Open5GS PCF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-pcfd.service; enabled; vendor preset: enabled)
-     Active: active (running) since Thu 2025-07-17 11:13:58 IST; 5h 17min ago
-   Main PID: 556 (open5gs-pcfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 8.3M
-        CPU: 1.220s
-     CGroup: /system.slice/open5gs-pcfd.service
-             └─556 /usr/bin/open5gs-pcfd -c /etc/open5gs/pcf.yaml
-
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.179: [sbi] INFO: [08adf402-62d1-41f0-93f4-27646812f29b] Subscription created until 2025-07-18T>Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: [0761b570-62d1-41f0-b1d7-f917a6192bc5] (NRF-profile-get) NF registered (../li>Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.15:80] (../lib/sbi/context.c:2374)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.15:7777] (../lib/sbi/context.c:2113)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.183: [sbi] INFO: [07601210-62d1-41f0-86ec-8f353462c376] (NRF-profile-get) NF registered (../li>Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.183: [sbi] INFO: Setup NF EndPoint(addr) [127.0.1.250:7777] (../lib/sbi/context.c:2374)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.184: [sbi] INFO: [08ad93ea-62d1-41f0-825a-d3e0d59523f1] (NRF-notify) NF registered (../lib/sbi>lines 1-38...skipping...
-● open5gs-amfd.service - Open5GS AMF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-amfd.service; enabled; vendor preset: enabled)
-     Active: active (running) since Thu 2025-07-17 11:13:55 IST; 5h 17min ago
-   Main PID: 349 (open5gs-amfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 11.4M
-        CPU: 1.277s
-     CGroup: /system.slice/open5gs-amfd.service
-             └─349 /usr/bin/open5gs-amfd -c /etc/open5gs/amf.yaml
-
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.375: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.375: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: [078e227c-62d1-41f0-ad35-b9f57b8e9d49] (NRF-notify) NF registered (../lib/sbi/nnrf-handler.>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: [078e227c-62d1-41f0-ad35-b9f57b8e9d49] (NRF-notify) NF Profile updated [type:SMF] (../lib/s>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.4:80] (../lib/sbi/context.c:2374)
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.4:7777] (../lib/sbi/context.c:2113)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.176: [sbi] INFO: [08acd55e-62d1-41f0-a6ec-7f31951e4806] (NRF-notify) NF registered (../lib/sbi/nnrf-handler.>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: [08acd55e-62d1-41f0-a6ec-7f31951e4806] (NRF-notify) NF Profile updated [type:PCF] (../lib/s>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:80] (../lib/sbi/context.c:2374)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:7777] (../lib/sbi/context.c:2113)
-
-● open5gs-pcfd.service - Open5GS PCF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-pcfd.service; enabled; vendor preset: enabled)
-     Active: active (running) since Thu 2025-07-17 11:13:58 IST; 5h 17min ago
-   Main PID: 556 (open5gs-pcfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 8.3M
-        CPU: 1.220s
-     CGroup: /system.slice/open5gs-pcfd.service
-             └─556 /usr/bin/open5gs-pcfd -c /etc/open5gs/pcf.yaml
-
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.179: [sbi] INFO: [08adf402-62d1-41f0-93f4-27646812f29b] Subscription created until 2025-07-18T11:13:58.17906>Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: [0761b570-62d1-41f0-b1d7-f917a6192bc5] (NRF-profile-get) NF registered (../lib/sbi/nf-sm.c:>Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.15:80] (../lib/sbi/context.c:2374)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.15:7777] (../lib/sbi/context.c:2113)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.183: [sbi] INFO: [07601210-62d1-41f0-86ec-8f353462c376] (NRF-profile-get) NF registered (../lib/sbi/nf-sm.c:>Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.183: [sbi] INFO: Setup NF EndPoint(addr) [127.0.1.250:7777] (../lib/sbi/context.c:2374)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.184: [sbi] INFO: [08ad93ea-62d1-41f0-825a-d3e0d59523f1] (NRF-notify) NF registered (../lib/sbi/nnrf-handler.>Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.184: [sbi] INFO: [08ad93ea-62d1-41f0-825a-d3e0d59523f1] (NRF-notify) NF Profile updated [type:UDR] (../lib/s>lines 1-39
-● open5gs-amfd.service - Open5GS AMF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-amfd.service; enabled; vendor preset: enabled)
-     Active: active (running) since Thu 2025-07-17 11:13:55 IST; 5h 17min ago
-   Main PID: 349 (open5gs-amfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 11.4M
-        CPU: 1.277s
-     CGroup: /system.slice/open5gs-amfd.service
-             └─349 /usr/bin/open5gs-amfd -c /etc/open5gs/amf.yaml
-
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.375: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.375: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.12:7777] (../lib/sbi/context.c:2113)
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: [078e227c-62d1-41f0-ad35-b9f57b8e9d49] (NRF-notify) NF registered (../lib>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: [078e227c-62d1-41f0-ad35-b9f57b8e9d49] (NRF-notify) NF Profile updated [t>Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.4:80] (../lib/sbi/context.c:2374)
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.4:7777] (../lib/sbi/context.c:2113)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.176: [sbi] INFO: [08acd55e-62d1-41f0-a6ec-7f31951e4806] (NRF-notify) NF registered (../lib>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: [08acd55e-62d1-41f0-a6ec-7f31951e4806] (NRF-notify) NF Profile updated [t>Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:80] (../lib/sbi/context.c:2374)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.13:7777] (../lib/sbi/context.c:2113)
-
-● open5gs-pcfd.service - Open5GS PCF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-pcfd.service; enabled; vendor preset: enabled)
-     Active: active (running) since Thu 2025-07-17 11:13:58 IST; 5h 17min ago
-   Main PID: 556 (open5gs-pcfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 8.3M
-        CPU: 1.220s
-     CGroup: /system.slice/open5gs-pcfd.service
-             └─556 /usr/bin/open5gs-pcfd -c /etc/open5gs/pcf.yaml
-
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.179: [sbi] INFO: [08adf402-62d1-41f0-93f4-27646812f29b] Subscription created until 2025-07>Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: [0761b570-62d1-41f0-b1d7-f917a6192bc5] (NRF-profile-get) NF registered (.>Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.15:80] (../lib/sbi/context.c:2374)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: Setup NF EndPoint(addr) [127.0.0.15:7777] (../lib/sbi/context.c:2113)
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.183: [sbi] INFO: [07601210-62d1-41f0-86ec-8f353462c376] (NRF-profile-get) NF registered (.>lines 1-36
-● open5gs-amfd.service - Open5GS AMF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-amfd.service; enabled; vendor pr>
-     Active: active (running) since Thu 2025-07-17 11:13:55 IST; 5h 17min ago
-   Main PID: 349 (open5gs-amfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 11.4M
-        CPU: 1.277s
-     CGroup: /system.slice/open5gs-amfd.service
-             └─349 /usr/bin/open5gs-amfd -c /etc/open5gs/amf.yaml
-
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.375: [sbi] INFO: Set>
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.375: [sbi] INFO: Set>
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: [07>
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: [07>
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: Set>
-Jul 17 11:13:56 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:56.424: [sbi] INFO: Set>
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.176: [sbi] INFO: [08>
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: [08>
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: Set>
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-amfd[349]: 07/17 11:13:58.177: [sbi] INFO: Set>
-
-● open5gs-pcfd.service - Open5GS PCF Daemon
-     Loaded: loaded (/lib/systemd/system/open5gs-pcfd.service; enabled; vendor pr>
-     Active: active (running) since Thu 2025-07-17 11:13:58 IST; 5h 17min ago
-   Main PID: 556 (open5gs-pcfd)
-      Tasks: 2 (limit: 9264)
-     Memory: 8.3M
-        CPU: 1.220s
-     CGroup: /system.slice/open5gs-pcfd.service
-             └─556 /usr/bin/open5gs-pcfd -c /etc/open5gs/pcf.yaml
-
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.179: [sbi] INFO: [08>
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: [07>
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: Set>
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.182: [sbi] INFO: Set>
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.183: [sbi] INFO: [07>
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.183: [sbi] INFO: Set>
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.184: [sbi] INFO: [08>
-Jul 17 11:13:58 IN-8KBKXD3 open5gs-pcfd[556]: 07/17 11:13:58.184: [sbi] INFO: [08>
-lines 1-39
-```
-
-##### cucp
-```bash
-user@IN-8KBKXD3:~/oai/cmake_targets/ran_build/build$ sudo ./nr-softmodem -O /etc/oai/oai-cucp.conf --sa
-CMDLINE: "./nr-softmodem" "-O" "/etc/oai/oai-cucp.conf" "--sa"
-[CONFIG] function config_libconfig_init returned 0
-[UTIL]   running in SA mode (no --phy-test, --do-ra, --nsa option present)
-[OPT]   OPT disabled
-[HW]   Version: Branch: develop Abrev. Hash: e82fde247a Date: Fri Jul 11 08:03:04 2025 +0000
-[GNB_APP]   Initialized RAN Context: RC.nb_nr_inst = 1, RC.nb_nr_macrlc_inst = 0, RC.nb_nr_L1_inst = 0, RC.nb_RU = 0, RC.nb_nr_CC[0] = 0
-[GNB_APP]   F1AP: gNB_CU_id[0] 3585
-[GNB_APP]   F1AP: gNB_CU_name[0] oai-cu-cp
-[GNB_APP]   SDAP layer is disabled
-[GNB_APP]   Data Radio Bearer count 1
-[GNB_APP]   Parsed IPv4 address for NG AMF: 172.28.251.212
-[UTIL]   threadCreate() for TASK_SCTP: creating thread with affinity ffffffff, priority 50
-[X2AP]   X2AP is disabled.
-[UTIL]   threadCreate() for TASK_NGAP: creating thread with affinity ffffffff, priority 50
-[NGAP]   Registered new gNB[0] and macro gNB id 3585
-[UTIL]   threadCreate() for TASK_RRC_GNB: creating thread with affinity ffffffff, priority 50
-[NGAP]   [gNB 0] check the amf registration state
-[UTIL]   threadCreate() for TASK_GNB_APP: creating thread with affinity ffffffff, priority 50
-[NR_RRC]   Entering main loop of NR_RRC message task
-[NGAP]   Send NGSetupRequest to AMF
-[NGAP]   3585 -> 0000e010
-[UTIL]   threadCreate() for TASK_CU_F1: creating thread with affinity ffffffff, priority 50
-[UTIL]   threadCreate() for time source realtime: creating thread with affinity ffffffff, priority 2
-[F1AP]   Starting F1AP at CU
-[UTIL]   threadCreate() for TASK_CUCP_E1: creating thread with affinity ffffffff, priority 50
-[UTIL]   time manager configuration: [time source: reatime] [mode: standalone] [server IP: 127.0.0.1} [server port: 7374] (server IP/port not used)
-[F1AP]   F1AP_CU_SCTP_REQ(create socket) for 172.28.251.212 len 15
-[F1AP]   In F1AP connection, don't start GTP-U, as we have also E1AP
-[NGAP]   Supported PLMN 0: MCC=999 MNC=70
-[NGAP]   Supported slice (PLMN 0): SST=0x01 SD=000
-[NGAP]   Supported slice (PLMN 0): SST=0x01 SD=171717
-[NGAP]   Supported slice (PLMN 0): SST=0x01 SD=000
-[NGAP]   Supported slice (PLMN 0): SST=0x02 SD=171717
-[NGAP]   Supported slice (PLMN 0): SST=0x03 SD=171717
-[NGAP]   Supported slice (PLMN 0): SST=0x04 SD=171717
-[NGAP]   Received NGSetupResponse from AMF
-[E1AP]   Starting E1AP at CU CP
-[GTPU]   Configuring GTPu
-[GTPU]   SA mode
-[GNB_APP]   [gNB 0] Received NGAP_REGISTER_GNB_CNF: associated AMF 1
-[E1AP]   E1AP_CUCP_SCTP_REQ(create socket) for 172.28.251.212 len 15
-E2 agent is DISABLED (for activation, define .e2_agent.{near_ric_ip_addr,sm_dir} parameters)
-TYPE <CTRL-C> TO TERMINATE
-[NR_RRC]   Accepting new CU-UP ID 3584 name oai-cuup-sst1 (assoc_id 12)
-
-```
-
-##### cuup
-```bash
-user@IN-8KBKXD3:~/oai/cmake_targets/ran_build/build$ sudo ./nr-cuup -O /etc/oai/oai-cuup.conf --sa
-CMDLINE: "./nr-cuup" "-O" "/etc/oai/oai-cuup.conf" "--sa"
-[CONFIG] function config_libconfig_init returned 0
-[UTIL]   threadCreate() for time source realtime: creating thread with affinity ffffffff, priority 2
-[UTIL]   time manager configuration: [time source: reatime] [mode: standalone] [server IP: 127.0.0.1} [server port: 7374] (server IP/port not used)
-[HW]   Version: Branch: develop Abrev. Hash: e82fde247a Date: Fri Jul 11 08:03:04 2025 +0000
-[UTIL]   threadCreate() for TASK_SCTP: creating thread with affinity ffffffff, priority 50
-[UTIL]   threadCreate() for TASK_GTPV1_U: creating thread with affinity ffffffff, priority 50
-[UTIL]   threadCreate() for TASK_CUUP_E1: creating thread with affinity ffffffff, priority 50
-[GTPU]   Configuring GTPu
-[E1AP]   Starting E1AP at CU UP
-[GTPU]   SA mode
-[GTPU]   Initializing UDP for local address 172.28.251.212 with port 2154
-E2 agent is DISABLED (for activation, define .e2_agent.{near_ric_ip_addr,sm_dir} parameters)
-[GTPU]   Created gtpu instance id: 92
-TYPE <CTRL-C> TO TERMINATE
-[GTPU]   Configuring GTPu address : 172.28.251.212, port : 2152
-[GTPU]   Initializing UDP for local address 172.28.251.212 with port 2152
-[GTPU]   bind: Address already in use
-[GTPU]   failed to bind socket: 172.28.251.212 2152
-[GTPU]   can't create GTP-U instance
-[GTPU]   Created gtpu instance id: -1
-[E1AP]   Failed to create CUUP N3 UDP listener
-[E1AP]   E1 connection established (SCTP_STATE_ESTABLISHED)
-```
-
-##### du
-```bash
-user@IN-8KBKXD3:~/oai/cmake_targets/ran_build/build$ sudo ./nr-softmodem -O /etc/oai/oai-du.conf --rfsim --sa
-CMDLINE: "./nr-softmodem" "-O" "/etc/oai/oai-du.conf" "--rfsim" "--sa"
-[CONFIG] function config_libconfig_init returned 0
-[UTIL]   running in SA mode (no --phy-test, --do-ra, --nsa option present)
-[OPT]   OPT disabled
-[HW]   Version: Branch: develop Abrev. Hash: e82fde247a Date: Fri Jul 11 08:03:04 2025 +0000
-[GNB_APP]   Initialized RAN Context: RC.nb_nr_inst = 1, RC.nb_nr_macrlc_inst = 1, RC.nb_nr_L1_inst = 1, RC.nb_RU = 0, RC.nb_nr_CC[0] = 1
-[NR_PHY]   Initializing gNB RAN context: RC.nb_nr_L1_inst = 1
-[NR_PHY]   Registered with MAC interface module (0x5f3bfbb210d0)
-[NR_PHY]   Initializing NR L1: RC.nb_nr_L1_inst = 1
-[NR_PHY]   L1_RX_THREAD_CORE -1 (15)
-[NR_PHY]   TX_AMP = 519 (-36 dBFS)
-[PHY]   No prs_config configuration found..!!
-[GNB_APP]   pdsch_AntennaPorts N1 1 N2 1 XP 1 pusch_AntennaPorts 1
-[GNB_APP]   RU information not present in config file. Assuming physical antenna ports equal to logical antenna ports 1
-[GNB_APP]   minTXRXTIME 6
-[GNB_APP]   SIB1 TDA 1
-[GNB_APP]   CSI-RS 0, SRS 0, SINR:0, 256 QAM may be on, delta_MCS off, maxMIMO_Layers -1, HARQ feedback enabled, num DLHARQ:16, num ULHARQ:16
-[NR_MAC]   No RedCap configuration found
-[GNB_APP]   sr_ProhibitTimer 0, sr_TransMax 64, sr_ProhibitTimer_v1700 0, t300 400, t301 400, t310 2000, n310 10, t311 3000, n311 1, t319 400
-[NR_MAC]   Candidates per PDCCH aggregation level on UESS: L1: 0, L2: 2, L4: 0, L8: 0, L16: 0
-[RRC]   Read in ServingCellConfigCommon (PhysCellId 0, ABSFREQSSB 660960, DLBand 78, ABSFREQPOINTA 660000, DLBW 217,RACH_TargetReceivedPower -118
-[RRC]   absoluteFrequencySSB 660960 corresponds to 3914400000 Hz
-
-Assertion (gscn >= start_gscn && gscn <= end_gscn) failed!
-In check_ssb_raster() ../../../common/utils/nr/nr_common.c:415
-GSCN 8134 corresponding to SSB frequency 3914400000 does not belong to GSCN range for band 78
-
-Exiting execution
-../../../common/utils/nr/nr_common.c:415 check_ssb_raster() Exiting OAI softmodem: _Assert_Exit_
-user@IN-8KBKXD3:~/oai/cmake_targets/ran_build/build$
-```
-
-##### nr-ue
-```bash
-user@IN-8KBKXD3:~/oai/cmake_targets/ran_build/build$ sudo ./nr-uesoftmodem -O /etc/oai/nr-ue.conf --rfsim --sa --nokrnmod
-CMDLINE: "./nr-uesoftmodem" "-O" "/etc/oai/nr-ue.conf" "--rfsim" "--sa" "--nokrnmod"
-[CONFIG] function config_libconfig_init returned 0
-[UTIL]   running in SA mode (no --phy-test, --do-ra, --nsa option present)
-[UTIL]   threadCreate() for Tpool0_-1: creating thread with affinity ffffffff, priority 97
-[UTIL]   threadCreate() for Tpool1_-1: creating thread with affinity ffffffff, priority 97
-[UTIL]   threadCreate() for Tpool2_-1: creating thread with affinity ffffffff, priority 97
-[UTIL]   threadCreate() for Tpool3_-1: creating thread with affinity ffffffff, priority 97
-[UTIL]   threadCreate() for Tpool4_-1: creating thread with affinity ffffffff, priority 97
-[UTIL]   threadCreate() for Tpool5_-1: creating thread with affinity ffffffff, priority 97
-[UTIL]   threadCreate() for Tpool6_-1: creating thread with affinity ffffffff, priority 97
-[UTIL]   threadCreate() for Tpool7_-1: creating thread with affinity ffffffff, priority 97
-[UTIL]   threadCreate() for Tpool8_-1: creating thread with affinity ffffffff, priority 97
-[UTIL]   threadCreate() for Tpool9_-1: creating thread with affinity ffffffff, priority 97
-[UTIL]   threadCreate() for Tpool10_-1: creating thread with affinity ffffffff, priority 97
-[UTIL]   threadCreate() for Tpool11_-1: creating thread with affinity ffffffff, priority 97
-[OPT]   OPT disabled
-[HW]   Version: Branch: develop Abrev. Hash: e82fde247a Date: Fri Jul 11 08:03:04 2025 +0000
-[NR_RRC]   create TASK_RRC_NRUE
-[UTIL]   threadCreate() for TASK_RRC_NRUE: creating thread with affinity ffffffff, priority 50
-[UTIL]   threadCreate() for TASK_NAS_NRUE: creating thread with affinity ffffffff, priority 50
-[SIM]   UICC simulation: IMSI=999700000000001, IMEISV=6754567890123413, Ki=465B5CE8B199B49FAA5F0A2EE238A6BC, OPc=E8ED289DEBA952E4283B54E88E6183CA, DNN=internet, SST=0x01, SD=0xffffff
-[NR_MAC]   [UE0] Initializing MAC
-[NR_MAC]   Initializing dl and ul config_request. num_slots = 20
-[RLC]   Activated srb0 for UE 0
-[UTIL]   threadCreate() for time source iq samples: creating thread with affinity ffffffff, priority 2
-[UTIL]   time manager configuration: [time source: iq_samples] [mode: standalone] [server IP: 127.0.0.1} [server port: 7374] (server IP/port not used)
-[PHY]   Set UE_fo_compensation 0, UE_scan_carrier 0, UE_no_timing_correction 0
-, chest-freq 0, chest-time 0
-[PHY]   Set UE nb_rx_antenna 1, nb_tx_antenna 1, threequarter_fs 0, ssb_start_subcarrier 516
-[PHY]   SA init parameters. DL freq 0 UL offset 0 SSB numerology 1 N_RB_DL 106
-
-Assertion (0) failed!
-In get_freq_range_from_freq() ../../../common/utils/nr/nr_common.c:1444
-Undefined Frequency Range for frequency 0 Hz
-
-Exiting execution
-../../../common/utils/nr/nr_common.c:1444 get_freq_range_from_freq() Exiting OAI softmodem: _Assert_Exit_
-Aborted
-user@IN-8KBKXD3:~/oai/cmake_targets/ran_build/build$
-```
-
-[[possible fix for error oai start comp]]
-
 
 ---
 ### **6. Testing End-to-End Connectivity**

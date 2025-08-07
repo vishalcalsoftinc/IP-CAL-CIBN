@@ -24,6 +24,11 @@
       "type": "file",
       "ctime": 1753345670799,
       "path": "Study on 4G and 5G Handover Mechanisms.md"
+    },
+    {
+      "type": "file",
+      "ctime": 1754047951406,
+      "path": "5G setup using Open5gs and OAI on GCP.md"
     }
   ]
 }

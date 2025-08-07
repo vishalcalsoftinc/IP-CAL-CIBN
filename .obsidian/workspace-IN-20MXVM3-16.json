@@ -70,23 +70,31 @@
             }
           },
           {
-            "id": "29b84aea3fe905f2",
+            "id": "56b37b71237f1409",
             "type": "leaf",
-            "pinned": true,
             "state": {
               "type": "markdown",
               "state": {
-                "file": "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP.md",
+                "file": "F1 Handover guide on GCP setup.md",
                 "mode": "source",
                 "source": false
               },
-              "pinned": true,
               "icon": "lucide-file",
-              "title": "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP"
+              "title": "F1 Handover guide on GCP setup"
+            }
+          },
+          {
+            "id": "94733f2e3b12b43e",
+            "type": "leaf",
+            "state": {
+              "type": "empty",
+              "state": {},
+              "icon": "lucide-file",
+              "title": "New tab"
             }
           }
         ],
-        "currentTab": 4
+        "currentTab": 5
       }
     ],
     "direction": "vertical"
@@ -165,7 +173,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 208.5
+    "width": 208.5,
+    "collapsed": true
   },
   "right": {
     "id": "028de37b6a29ee59",
@@ -181,13 +190,12 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP"
+              "title": "Outline"
             }
           },
           {
@@ -242,8 +250,7 @@
       }
     ],
     "direction": "horizontal",
-    "width": 325.5,
-    "collapsed": true
+    "width": 325.5
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -255,20 +262,23 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "29b84aea3fe905f2",
+  "active": "94733f2e3b12b43e",
   "lastOpenFiles": [
-    "Pasted image 20250807172222.png",
-    "5G setup using Open5gs and OAI on GCP.md",
-    "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP.md",
-    "Study on 4G and 5G Handover Mechanisms.md",
-    "F1 HANDOVER Revisited-IN-8KBKXD3.md",
+    "F1 HANDOVER Revisited.md",
     "5G setup using Open5gs and OAI on GCP-IN-8KBKXD3-6.md",
     "5G setup using Open5gs and OAI on GCP-IN-8KBKXD3-5.md",
-    "F1 Handover guide on GCP setup.md",
-    "5G setup using Open5gs and OAI on GCP-IN-8KBKXD3-4.md",
-    "5G setup using Open5gs and OAI on GCP-IN-8KBKXD3-3.md",
-    "5G setup using Open5gs and OAI on GCP-IN-8KBKXD3-2.md",
     "5G setup using Open5gs and OAI on GCP-IN-8KBKXD3.md",
+    "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP.md",
+    "5G setup using Open5gs and OAI on GCP.md",
+    "5G setup using Open5gs and OAI on GCP-IN-20MXVM3-6.md",
+    "F1 HANDOVER Revisited-IN-20MXVM3.md",
+    "5G setup using Open5gs and OAI on GCP-IN-20MXVM3-5.md",
+    "5G setup using Open5gs and OAI on GCP-IN-20MXVM3-4.md",
+    "5G setup using Open5gs and OAI on GCP-IN-20MXVM3-3.md",
+    "5G setup using Open5gs and OAI on GCP-IN-20MXVM3-2.md",
+    "5G setup using Open5gs and OAI on GCP-IN-20MXVM3.md",
+    "Study on 4G and 5G Handover Mechanisms.md",
+    "F1 Handover guide on GCP setup.md",
     "Note from Vishal.md",
     "Pasted image 20250801140232.png",
     "Pasted image 20250801140209.png",
@@ -290,9 +300,6 @@
     "Pasted image 20250729124435.png",
     "IP-CAL-CIBN.md",
     "Deploying 5G Core Network with Open5GS and UERANSIM.md",
-    "S1-based Handover.md",
-    "5G Handover Mechanisms.md",
-    "5G Network Slicing.md",
     "desktop.ini"
   ]
 }

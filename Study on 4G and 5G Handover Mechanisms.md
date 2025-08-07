@@ -8,6 +8,8 @@ Handover, also known as handoff, is a critical process in mobile telecommunicati
 
 ### Key Triggers for Handover
 
+![[Pasted image 20250729112450.png]]
+
 - ==**Radio Conditions**: Events like A3 (neighbor cell signal stronger than serving cell by a threshold for a Time-to-Trigger duration) initiate handovers.==
 - ==**Load Balancing**: High network load may prompt a handover to a less congested cell.==
 - ==**Service Requirements**: For instance, voice calls in 5G may trigger an EPS Fallback to 4G if Voice over New Radio (VoNR) is unavailable.==
@@ -185,7 +187,7 @@ sequenceDiagram
 |**Inter-RAT**|Between NR and E-UTRA (LTE), staying on 5GC or switching to EPC.|
 |**NSA/MR-DC**|In Non-Standalone (NSA) or Multi-RAT Dual Connectivity, involving master/secondary nodes.|
 |**Non-3GPP Access**|To trusted/untrusted non-3GPP networks (e.g., Wi-Fi).|
-
+![[Pasted image 20250729112427.png]]
 ### [[Xn-based Handover Procedure]]
 
 The Xn-based handover in 5G is analogous to the X2-based handover in 4G, optimized for lower latency:
@@ -267,7 +269,7 @@ sequenceDiagram
 
 
 
-### N2-based Handover
+### [[N2-based Handover]]
 
 When Xn is unavailable, the N2-based (or NGAP-based) handover involves the AMF, similar to 4G's S1 handover. The steps are:
 

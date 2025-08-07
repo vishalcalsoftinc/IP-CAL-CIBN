@@ -473,16 +473,16 @@ security = {
 
 # Logging Configuration
 log_config: {
-  global_log_level = "info";
-  hw_log_level = "info";
-  phy_log_level = "info";
-  mac_log_level = "info";
-  rlc_log_level = "info";
-  pdcp_log_level = "info";
-  rrc_log_level = "info";
-  f1ap_log_level = "info";
-  ngap_log_level = "info";
-  sctp_log_level = "info";
+  global_log_level = "debug";
+  hw_log_level = "debug";
+  phy_log_level = "debug";
+  mac_log_level = "debug";
+  rlc_log_level = "debug";
+  pdcp_log_level = "debug";
+  rrc_log_level = "debug";
+  f1ap_log_level = "debug";
+  ngap_log_level = "debug";
+  sctp_log_level = "debug";
 };
 ```
 
@@ -503,10 +503,10 @@ gNBs =
     gNB_CU_UP_ID = 0xe00;
     gNB_name = "oai-cuup-sst1";
     cell_type = "CELL_MACRO_GNB";
-    
-    # Tracking Area 
+
+    # Tracking Area
     tracking_area_code = 1;
-    
+
     # F1-U Interface Configuration (to DU)
     tr_s_preference = "f1";
     local_s_address = "172.28.251.212";   # CU-UP F1-U IP address
@@ -535,7 +535,9 @@ gNBs =
     NETWORK_INTERFACES = {
       GNB_IPV4_ADDRESS_FOR_NG_AMF = "0.0.0.0";        # CU-UP does not connect to AMF
       GNB_IPV4_ADDRESS_FOR_NGU    = "172.28.251.212"; # User plane interface to UPF
-      GNB_PORT_FOR_S1U            = 2152;             # NGU port (3GPP Spec 2152)
+      # GNB_PORT_FOR_S1U            = 2152;             # NGU port (3GPP Spec 2152)
+      # GNB_PORT_FOR_S1U            = 2123;             # NGU port changed to avoid conflict with UPF
+      GNB_PORT_FOR_NGU            = 2123;             # CORRECT parameter for NGU port for 5G S1 is for 4G
     };
  }
 );
@@ -548,10 +550,10 @@ SCTP: {
 
 # Logging Configuration
 log_config: {
-  global_log_level = "info";
-  pdcp_log_level = "info"; 
-  f1ap_log_level = "info"; 
-  ngap_log_level = "info";
+  global_log_level = "debug";
+  pdcp_log_level = "debug";
+  f1ap_log_level = "debug";
+  ngap_log_level = "debug";
 };
 ```
 
@@ -774,12 +776,12 @@ serveraddr = "server";
 }
 
 log_config: {
-  global_log_level = "info";
-  hw_log_level = "info";
-  phy_log_level = "info";
-  mac_log_level = "info";
-  rlc_log_level = "info";
-  f1ap_log_level = "info";
+  global_log_level = "debug";
+  hw_log_level = "debug";
+  phy_log_level = "debug";
+  mac_log_level = "debug";
+  rlc_log_level = "debug";
+  f1ap_log_level = "debug";
 };
 
 #/* configuration for channel modelisation */
@@ -871,7 +873,7 @@ rfsimulator: {
 
 # Logging Configuration
 log_config: {
-  global_log_level = "info";
+  global_log_level = "debug";
 };
 ```
 
@@ -882,7 +884,7 @@ Open **five separate WSL terminals**. Each component must be run in its own term
 **Terminal 1: Start Open5GS Core**
 ```bash
 # MongoDB (if using local database)  
-sudo systemctl start mongodb
+sudo systemctl start mongod
 
 # Start Open5GS core components  
 sudo systemctl start open5gs-mmed  
@@ -939,6 +941,7 @@ Wait for the core network to initialize completely. You can check the status wit
 **Terminal 2: Start OAI CU-CP**
 Navigate to the OAI build directory first.
 ```bash
+sudo nano /etc/oai/oai-cucp.conf
 cd oai/cmake_targets/ran_build/build
 sudo ./nr-softmodem -O /etc/oai/oai-cucp.conf --sa
 ```
@@ -946,6 +949,7 @@ sudo ./nr-softmodem -O /etc/oai/oai-cucp.conf --sa
 **Terminal 3: Start OAI CU-UP**
 Navigate to the OAI build directory.
 ```bash
+sudo nano /etc/oai/oai-cuup.conf
 cd oai/cmake_targets/ran_build/build
 sudo ./nr-cuup -O /etc/oai/oai-cuup.conf --sa
 ```
@@ -953,30 +957,22 @@ sudo ./nr-cuup -O /etc/oai/oai-cuup.conf --sa
 **Terminal 4: Start OAI DU**
 Navigate to the OAI build directory.
 ```bash
+sudo nano /etc/oai/oai-du.conf
 cd oai/cmake_targets/ran_build/build
 sudo ./nr-softmodem -O /etc/oai/oai-du.conf --rfsim --sa
+
+sudo ./nr-softmodem -O /etc/oai/oai-du.conf --rfsim --sa -r 106 --numerology 1 --band 78 -C 3619200000
 ```
 The DU will start and wait for a connection from the CU and the RF simulator.
 
 **Terminal 5: Start OAI NR-UE**
 Navigate to the OAI build directory.
 ```bash
+sudo nano /etc/oai/nr-ue.conf
 cd oai/cmake_targets/ran_build/build
 sudo ./nr-uesoftmodem -O /etc/oai/nr-ue.conf --rfsim --sa --nokrnmod 
 
-sudo ./nr-uesoftmodem -r 106 --numerology 1 --band 48 -C 3619200000 --rfsim --rfsimulator.serveraddr 172.28.251.212 -O /etc/oai/nr-ue.conf
-
-sudo ./nr-uesoftmodem \
-  -r 106 \
-  --numerology 1 \
-  --band 48 \
-  -C 3619200000 \
-  --ssb 516 \
-  --rfsim \
-  --rfsimulator.serveraddr 172.28.251.212 \
-  -O /etc/oai/nr-ue.conf
-
-sudo ./nr-uesoftmodem \ -r 106 \ --numerology 1 \ --band 78 \ -C 3619200000 \ --ssb 516 \ --rfsim \ --rfsimulator.serveraddr 172.28.251.212 \ -O /etc/oai/nr-ue.conf
+sudo ./nr-uesoftmodem -r 106 --numerology 1 --band 78 -C 3619200000 --ssb 516 --rfsim --rfsimulator.serveraddr 172.28.251.212 -O /etc/oai/nr-ue.conf 
 
 ```
 The UE will now attempt to connect to the DU via the RF simulator, and the registration process with the 5G core will begin.

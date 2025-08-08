@@ -5,7 +5,73 @@ This guide provides a complete, step-by-step walkthrough for deploying a virtual
 
 The final architecture will consist of a consolidated OAI CU-CP/CU-UP, two OAI DUs, and a simulated OAI UE, configured to demonstrate a successful F1 handover between the two DUs.
 
-![[Pasted image 20250807172222.png]]
+```mermaid
+graph LR
+
+    %% --- Node Definitions ---
+
+    %% We define each logical component as a node.
+
+    %% The label contains all text, using <br/> for line breaks.
+
+  
+
+    UE_NODE["172.17.0.91<br/><br/><b>UE</b><br/><br/>oai-nr-ue-vm<br/>(rf-server)"];
+
+    %% This invisible subgraph forces DU0 and DU1 into a vertical stack
+
+    subgraph DU_Stack [ ]
+
+        style DU_Stack fill:transparent,stroke:transparent
+
+        direction TB
+
+        DU0["172.17.0.92<br/><br/><b>DU0</b><br/>Cell ID: 12345678<br/>(0xbc614e)<br/><br/>oai-du0-vm<br/>(rf-client)"]
+
+        DU1["172.17.0.94<br/><br/><b>DU1</b><br/>Cell ID: 12345679<br/>(0xbc614f)<br/><br/>oai-du1-vm<br/>(rf-client)"]
+
+    end
+
+    CU_NODE["172.17.0.93<br/><br/><b>CUCP</b><br/><b>CUUP</b><br/><br/>oai-cu-vm"];
+
+    CORE_NODE["172.17.0.95<br/><br/><b>Open5GS</b><br/><br/>open5gs-vm"];
+
+  
+
+    %% --- Connections ---
+
+    %% Define the links between the nodes.
+
+    UE_NODE <--> DU0;
+
+    UE_NODE -. Handover .-> DU1;
+
+    DU0 --> CU_NODE;
+
+    DU1 --> CU_NODE;
+
+    CU_NODE <--> CORE_NODE;
+
+  
+
+    %% --- Styling ---
+
+    %% This class defines the black-box appearance and is applied to all nodes below.
+
+    classDef componentNode fill:#1a1a1a,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace,text-align:center;
+
+    %% Corrected Class Application
+
+    class UE_NODE componentNode;
+
+    class DU0 componentNode;
+
+    class DU1 componentNode;
+
+    class CU_NODE componentNode;
+
+    class CORE_NODE componentNode;
+```
 
 ---
 
@@ -186,50 +252,46 @@ The final step is to configure VS Code to use your private key to establish a co
 ```
 # Read more about SSH config files: https://linux.die.net/man/5/ssh_config
 Host alias
-    HostName hostname
-    User user
-  
+    HostName hostname
+    User user
+
 # The Bastion Host - This one has a public IP
-# Google Cloud VM for Open5GS Core
-Host gcp-open5gs-vm    
-    HostName 34.44.235.156
-    User telcomaan
-    IdentityFile C:\Users\vishalkumar.shaw\.ssh\id_rsa
-  
+# Google Cloud VM for Open5GS Core 
+Host gcp-open5gs-vm     
+    HostName 35.224.186.219
+    User telcomaan
+    IdentityFile C:\Users\vishalkumar.shaw\.ssh\id_rsa
+
 # Google Cloud VM for OAI-NR-UE
-Host gcp-oai-nr-ue-vm    
-    HostName 34.27.116.250
-    # HostName 172.17.0.91
-    User telcomaan  
-    # ProxyJump gcp-open5gs-vm
-    IdentityFile C:\Users\vishalkumar.shaw\.ssh\id_rsa
-  
-# Google Cloud VM for OAI-DU
-Host gcp-oai-du-vm    
-    HostName 172.17.0.92
-    User telcomaan  
-    ProxyJump gcp-open5gs-vm  
-    IdentityFile C:\Users\vishalkumar.shaw\.ssh\id_rsa
-  
-# Google Cloud VM for OAI-CUCP
-Host gcp-oai-cucp-vm    
-    HostName 172.17.0.93
-    User telcomaan  
-    ProxyJump gcp-open5gs-vm
-    IdentityFile C:\Users\vishalkumar.shaw\.ssh\id_rsa
-  
-# Google Cloud VM for OAI-CUUP
-Host gcp-oai-cuup-vm    
-    HostName 172.17.0.94
-    User telcomaan  
-    ProxyJump gcp-open5gs-vm
-    IdentityFile C:\Users\vishalkumar.shaw\.ssh\id_rsa
-  
-  
+Host gcp-oai-nr-ue-vm     
+    HostName 34.28.167.5
+    User telcomaan
+    IdentityFile C:\Users\vishalkumar.shaw\.ssh\id_rsa
+
+# Google Cloud VM for OAI-DU0
+Host gcp-oai-du0-vm     
+    HostName 34.55.42.213
+    User telcomaan  
+    IdentityFile C:\Users\vishalkumar.shaw\.ssh\id_rsa
+
+# Google Cloud VM for OAI-CU
+Host gcp-oai-cu-vm     
+    HostName 172.17.0.93
+    User telcomaan   
+    ProxyJump gcp-open5gs-vm 
+    IdentityFile C:\Users\vishalkumar.shaw\.ssh\id_rsa
+
+# Google Cloud VM for OAI-DU1
+Host gcp-oai-du1-vm     
+    HostName 34.31.217.164
+    User telcomaan
+    IdentityFile C:\Users\vishalkumar.shaw\.ssh\id_rsa
+
+
 
 # the HostName is the IP address of the VM (its epemeral and changes everytime you start the VM)
 # the User is the username you use to log in to the VM
-# the IdentityFile is the path to your private SSH key file
+# the IdentityFile is the path to your private SSH key file 
 
 ```
 
@@ -1015,6 +1077,47 @@ serveraddr = "server";
 
 ```
 
+
+#### **6.5. The RF Simulator: UE as Server for Handover**
+
+For a standard single-cell setup, it is common to configure the gNB as the RF simulator "server" and the UE as the "client." However, the F1 handover scenario introduces a critical complexity that requires this model to be inverted.
+
+**The Challenge: Connecting to Two DUs**
+
+During handover, the UE must be able to listen to the source DU (DU0) and then seamlessly switch to listen to the target DU (DU1). If both DUs were configured as independent RF simulator servers, the UE client would only be able to connect to one at a time. It would have no way of discovering or hearing the transmission from the second DU's simulation environment, causing the handover to fail at the physical layer (as seen by a `synch Failed` error in the UE logs).
+
+**The Solution: A Centralized, UE-Hosted Simulation**
+
+The OAI RF simulator (`--rfsim`) operates on a strict **one-server-to-many-clients** model for any given simulation instance. To solve the handover problem, the component that needs to communicate with multiple peers must become the server. In this case, that component is the UE.
+
+By configuring the UE as the server, we create a single, centralized simulation environment. Both the source DU and the target DU then act as clients that connect to this UE-hosted environment.
+
+This "hub-and-spoke" architecture ensures that:
+*   The signals from **both** DUs are being fed into the *same* simulation instance.
+*   When the UE receives the handover command, it can immediately start listening for the target DU's signals within the simulation environment it is already hosting.
+
+**How This is Implemented:**
+
+*   **The UE (`nr-uesoftmodem`) as the Server:**
+    The UE is configured as the server through its startup command. By including the `--rfsim` flag *without* the `--rfsimulator.serveraddr` argument, it defaults to server mode. And it is explicitly configured as rf server in the conf file.
+    ```conf
+    rfsimulator: {
+        serveraddr = "server"; 
+        ...
+    }
+    ```
+
+*   **The DUs (`nr-softmodem`) as Clients:**
+    Both DU configuration files (`oai-du0.conf` and `oai-du1.conf`) are explicitly configured as clients by setting the `serveraddr` parameter in the `rfsimulator` block to the UE's IP address:
+    ```conf
+    rfsimulator: {
+        serveraddr = "172.17.0.91"; # <-- The IP of the UE acting as the server
+        ...
+    }
+    ```
+
+This inverted server-client model is the key to enabling a successful RF-simulated F1 handover in OAI.
+
 ---
 
 ### **Part 7: Starting the Network & Executing the F1 Handover**
@@ -1045,21 +1148,28 @@ sudo systemctl start open5gs-pcfd
 sudo systemctl status open5gs-*
 ```
 
-**2. Start the CU-CP (on `oai-cu-vm`)**
+**2. Enable NAT (on `open5gs-vm`)**
+```bash
+sudo sysctl -w net.ipv4.ip_forward=1
+sudo iptables -t nat -A POSTROUTING -o ens4 -j MASQUERADE
+sudo iptables -I FORWARD 1 -j ACCEPT
+```
+
+**3. Start the CU-CP (on `oai-cu-vm`)**
 ```bash
 # On: oai-cucp-vm
 cd ~/openairinterface5g/cmake_targets/ran_build/build
 sudo -E ./nr-softmodem -O /etc/oai/oai-cucp.conf --sa --telnetsrv --telnetsrv.shrmod ci
 ```
 
-**3. Start the CU-UP (on `oai-cu-vm`)**
+**4. Start the CU-UP (on `oai-cu-vm`)**
 ```bash
 # On: oai-cucp-vm (in a new terminal)
 cd ~/openairinterface5g/cmake_targets/ran_build/build
 sudo -E ./nr-cuup -O /etc/oai/oai-cuup.conf --telnetsrv --telnetsrv.shrmod ci
 ```
 
-**4. Start the NR UE as the RF Server (on `oai-nr-ue-vm`)**
+**5. Start the NR UE as the RF Server (on `oai-nr-ue-vm`)**
 This starts the UE in server mode, waiting for the DUs to connect.
 ```bash
 # On: oai-nr-ue-vm
@@ -1067,7 +1177,7 @@ cd ~/openairinterface5g/cmake_targets/ran_build/build
 sudo ./nr-uesoftmodem -r 106 --numerology 1 --band 78 -C 3619200000 --ssb 516 --rfsim -O /etc/oai/nr-ue.conf
 ```
 
-**5. Start the Source DU (DU0) as a Client (on `oai-du0-vm`)**
+**6. Start the Source DU (DU0) as a Client (on `oai-du0-vm`)**
 The DU will connect to the UE's RF server, and the UE will attach to the network.
 ```bash
 # On: oai-du-vm
@@ -1075,7 +1185,7 @@ cd ~/openairinterface5g/cmake_targets/ran_build/build
 sudo ./nr-softmodem -O /etc/oai/oai-du0.conf --rfsim --sa
 ```
 
-**6. Start the Target DU (DU1) as a Client (on `oai-du1-vm`)**
+**7. Start the Target DU (DU1) as a Client (on `oai-du1-vm`)**
 This DU also connects to the UE's RF server. The CU-CP log will show a second F1 setup.
 ```bash
 # On: oai-cuup-vm
@@ -1083,7 +1193,7 @@ cd ~/openairinterface5g/cmake_targets/ran_build/build
 sudo ./nr-softmodem -O /etc/oai/oai-du1.conf --rfsim --sa
 ```
 
-**7. Trigger the F1 Handover**
+**8. Trigger the F1 Handover**
 Run this command from any machine.
 ```bash
 echo ci trigger_f1_ho | nc 172.17.0.93 9090 && echo
@@ -1104,8 +1214,231 @@ echo ci trigger_f1_ho | nc 172.17.0.93 9090 && echo
     Successful, uninterrupted replies confirm a successful data plane switch.
 
 ---
+### **Part 9:The F1 Handover Process Explained**
 
-### **Part 9: CRITICAL Cleanup**
+This section breaks down the key stages of the F1 handover you triggered. By cross-referencing these log snippets with your own terminal windows, you can trace the entire procedure from start to finish.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant User
+    participant CU-CP as "oai-cu-vm"
+    participant Source DU (DU0) as "oai-du0-vm"
+    participant Target DU (DU1) as "oai-du1-vm"
+    participant UE as "oai-nr-ue-vm"
+
+    %% == Step 1: Initial State (Already established) ==
+    Note over CU-CP, UE: Initial State: Network is up.<br/>UE is attached and has an active PDU session via Source DU (PCI 0).
+
+    %% == Step 2: Handover Trigger ==
+    User->>CU-CP: Telnet Command: "ci trigger_f1_ho"
+    activate CU-CP
+
+    %% == Step 3: Handover Preparation ==
+    Note over CU-CP: Handover triggered for UE (RNTI 5200) to Target DU (PCI 1)
+    CU-CP->>Target DU (DU1): F1AP: UE CONTEXT SETUP REQUEST
+    activate Target DU (DU1)
+    Note over Target DU (DU1): Target DU prepares resources,<br/>allocates new C-RNTI (dfdf).
+    Target DU (DU1)-->>CU-CP: F1AP: UE CONTEXT SETUP RESPONSE
+    deactivate Target DU (DU1)
+
+    Note over CU-CP: CU-CP now commands UE to switch via the existing path.
+    CU-CP->>Source DU (DU0): F1AP: UE CONTEXT MODIFICATION REQUEST<br/>(contains RRCReconfiguration message)
+    activate Source DU (DU0)
+
+    Source DU (DU0)->>UE: RRCReconfiguration (with reconfigurationWithSync)
+    deactivate Source DU (DU0)
+    activate UE
+
+    %% == Step 4 & 5: UE Re-synchronization and Access ==
+    Note over UE: UE receives command, detaches from Source DU (PCI 0).<br/>Starts searching for Target DU (PCI 1).
+    
+    loop Synchronization & Random Access on Target Cell
+        UE->>Target DU (DU1): PHY: Synchronization Signals (Finds PCI 1)
+        UE->>Target DU (DU1): MAC: PRACH Preamble (CFRA)
+        activate Target DU (DU1)
+        Target DU (DU1)-->>UE: MAC: Random Access Response (RAR)
+        deactivate Target DU (DU1)
+    end
+    Note over UE: Sync and RA successful.
+
+    UE->>Target DU (DU1): RRCReconfigurationComplete
+    activate Target DU (DU1)
+    
+    %% == Step 6: Network Path Switch and Cleanup ==
+    Note over Target DU (DU1): Target DU forwards the confirmation to CU-CP.
+    Target DU (DU1)->>CU-CP: F1AP: UL RRC Message Transfer<br/>(contains RRCReconfigurationComplete)
+    deactivate Target DU (DU1)
+
+    Note over CU-CP: Handover success confirmed!<br/>Switches data path and starts cleanup.
+    Note over CU-CP, UE: Data Plane (GTP-U Path) is now switched to Target DU (DU1).
+
+    CU-CP->>Source DU (DU0): F1AP: UE CONTEXT RELEASE COMMAND
+    activate Source DU (DU0)
+    Note over Source DU (DU0): Source DU tears down all<br/>contexts for the UE (RNTI 5200).
+    Source DU (DU0)-->>CU-CP: F1AP: UE CONTEXT RELEASE COMPLETE
+    deactivate Source DU (DU0)
+    deactivate CU-CP
+    deactivate UE
+```
+
+#### **Step 1: Network Ready State - UE Attached via Source DU (DU0)**
+
+Initially, the network is stable. The UE has attached to the core through the source DU (`oai-du0-vm`, PCI 0). Both DUs have established their F1 control connections with the CU-CP, and the CU-CP has established its E1 and NGAP connections.
+
+*   **Log: CU-CP (`oai-cu-vm`) shows all links are up and the UE is attached.**
+    The log shows the NGAP setup with the AMF is complete. It then accepts F1 connections from both the source DU (ID `3585`) and the target DU (ID `3586`). Finally, it processes the UE's connection through the source DU, establishing a PDU session.
+
+    ```log
+    [NGAP]     Received NGSetupResponse from AMF
+    [GNB_APP]  [gNB 0] Received NGAP_REGISTER_GNB_CNF: associated AMF 1
+    ...
+    [NR_RRC]   Received F1 Setup Request from gNB_DU 3585 (oai-cu-cp) on assoc_id 6
+    [NR_RRC]   Accepting DU 3585 (oai-cu-cp), sending F1 Setup Response
+    ...
+    [NR_RRC]   Received F1 Setup Request from gNB_DU 3586 (oai-cu-cp) on assoc_id 7
+    [NR_RRC]   Accepting DU 3586 (oai-cu-cp), sending F1 Setup Response
+    ...
+    [NR_RRC]   [--] (cellID 0, UE ID 1 RNTI 5200) Create UE context...
+    [NR_RRC]   [UL] (cellID bc614e, UE ID 1 RNTI 5200) Received RRCSetupComplete (RRC_CONNECTED reached)
+    ...
+    [NGAP]     PDUSESSIONSetup initiating message
+    [NR_RRC]   UE 1: received PDU Session Resource Setup Request
+    [NR_RRC]   [DL] (cellID bc614e, UE ID 1 RNTI 5200) Generate RRCReconfiguration (bytes 283, xid 0)
+    [NR_RRC]   [UL] (cellID bc614e, UE ID 1 RNTI 5200) Received RRCReconfigurationComplete
+    ```
+
+*   **Log: UE (`oai-nr-ue-vm`) confirms synchronization and PDU session.**
+    The UE's log shows it synchronizing to the initial cell (PCI 0), completing the full NAS registration and security procedures, and finally receiving its IP address, which activates the `oaitun_ue1` interface.
+
+    ```log
+    [PHY]      Initial sync successful, PCI: 0
+    ...
+    [NR_RRC]   State = NR_RRC_CONNECTED
+    [NAS]      Generate Initial NAS Message: Registration Request
+    ...
+    [NAS]      [UE 0] Received NAS_DOWNLINK_DATA_IND type FGS_REGISTRATION_ACCEPT with length 46
+    ...
+    [NAS]      Received PDU Session Establishment Accept, UE IPv4: 10.45.0.2
+    [OIP]      Interface oaitun_ue1 successfully configured, IPv4 10.45.0.2, IPv6 (null)
+    ```
+
+#### **Step 2: Manual Handover Trigger**
+
+You send the `ci trigger_f1_ho` command to the telnet server on the CU-CP. This is the catalyst for the entire sequence.
+
+*   **Log: CU-CP (`oai-cu-vm`) receives the command and initiates the handover.**
+    The CU-CP receives the command and immediately begins the handover procedure, targeting the UE (identified by its original RNTI `5200`) towards the target DU (assoc\_id `7`, which corresponds to PCI `1`).
+
+    ```log
+    [TELNETSRV] Telnet client connected....
+    [TELNETSRV] Command received: readc 17 filled 17 "ci trigger_f1_ho"
+    [NR_RRC]   Handover triggered for UE 1/RNTI 5200 towards DU 3586/assoc_id 7/PCI 1
+    ```
+
+#### **Step 3: Handover Preparation & RRC Command**
+
+The CU-CP orchestrates the move. It first notifies the target DU to prepare resources. Once confirmed, it sends the `RRCReconfiguration` message to the UE, telling it to switch.
+
+*   **Log: Target DU (`oai-du1-vm`) prepares for the UE's arrival.**
+    The target DU receives an F1AP message from the CU-CP (not explicitly shown but implied). It sets up a new context for the incoming UE, assigning it a new temporary identifier (C-RNTI `dfdf`) and creating all necessary radio and transport layers for it.
+
+    ```log
+    [NR_MAC]   Added new CFRA process for UE RNTI dfdf with initial CellGroup
+    [RLC]      Activated srb0 for UE 57311
+    [RLC]      Added srb 1 to UE 57311
+    [RLC]      Added srb 2 to UE 57311
+    [RLC]      Added drb 1 to UE 57311
+    [GTPU]     [94] Created tunnel for UE ID 57311, teid for incoming: 65e56dc2...
+    ```
+
+*   **Log: UE (`oai-nr-ue-vm`) receives the handover command and starts the process.**
+    The UE receives the `RRCReconfiguration` message. The key fields `reconfigurationWithSync` and the new C-RNTI `dfdf` instruct it to perform a handover.
+
+    ```log
+    [NR_RRC]   RRCReconfiguration includes radio Bearer Configuration
+    [PDCP]     SRB 2 re-established
+    [PDCP]     DRB 1 re-established
+    [NR_RRC]   State = NR_RRC_CONNECTED
+    [NR_RRC]   Processing reconfigurationWithSync
+    ...
+    [MAC]      [UE 0] Applying CellGroupConfig from gNodeB
+    [NR_MAC]   Received reconfigurationWithSync
+    [NR_MAC]   Configuring CRNTI dfdf
+    ```
+
+#### **Step 4: UE Re-synchronization to Target Cell (PCI 1)**
+
+This is the most critical phase where the UE's physical layer finds and locks onto the new cell.
+
+*   **Log: UE (`oai-nr-ue-vm`) successfully finds and synchronizes to PCI 1.**
+    The UE's PHY layer immediately starts searching for the new cell ID (`Nid_cell 1`) and successfully decodes its broadcast channel, confirming synchronization.
+
+    ```log
+    [NR_PHY]   Starting re-sync detection for target Nid_cell 1
+    [PHY]      [UE thread Synch] Running Initial Synch
+    ...
+    [PHY]      Initial sync: pbch decoded sucessfully, ssb index 0
+    [PHY]      pbch rx ok. rsrp:54 dB/RE, adjust_rxgain:-4 dB
+    [NR_PHY]   Cell Detected with GSCN: 0...
+    [PHY]      Initial sync successful, PCI: 1
+    [PHY]      Got synch: hw_slot_offset 24, carrier off -186 Hz...
+    ```
+
+#### **Step 5: Random Access on Target DU and Handover Completion**
+
+After synchronizing, the UE performs a contention-free random access (CFRA) on the new cell to announce its arrival and sends the `RRCReconfigurationComplete` message to finalize the handover.
+
+*   **Log: Target DU (`oai-du1-vm`) detects the UE's PRACH and completes the access.**
+    The target DU sees the PRACH preamble from the UE, responds, and logs the successful completion of the contention-free random access with the UE's new RNTI `dfdf`.
+
+    ```log
+    [NR_PHY]   [RAPROC] 563.19 Initiating RA procedure with preamble 63, energy 44.0 dB...
+    [NR_MAC]   563.19 UE RA-RNTI 0113 TC-RNTI dfdf: initiating RA procedure
+    ...
+    [NR_MAC]   (rnti 0xdfdf) CFRA procedure succeeded!
+    [NR_MAC]   Adding new UE context with RNTI 0xdfdf
+    ```
+
+*   **Log: UE (`oai-nr-ue-vm`) sends the final confirmation.**
+    The UE's MAC layer confirms the random access succeeded, and the RRC layer generates the `RRCReconfigurationComplete` message to send up to the network.
+
+    ```log
+    [MAC]      [UE 0][564.7][RAPROC] RA procedure succeeded. CFRA: RAR successfully received.
+    ...
+    [NR_RRC]   rrcReconfigurationComplete Encoded 10 bits (2 bytes)
+    [NR_RRC]   Logical Channel UL-DCCH (SRB1), Generating RRCReconfigurationComplete (bytes 2)
+    ```
+
+#### **Step 6: Network Path Switch and Resource Cleanup**
+
+The CU-CP, having received the confirmation from the UE via the target DU, now finalizes the handover by switching the data path and telling the source DU to clean up.
+
+*   **Log: Source DU (`oai-du0-vm`) is commanded to release the UE's context.**
+    The source DU receives a `TransmissionActionIndicator with Stop value` for the original UE RNTI `5200`. After a timer, it tears down all resources associated with that UE.
+
+    ```log
+    [NR_MAC]   gNB-DU received the TransmissionActionIndicator with Stop value for UE 5200
+    ...
+    [GTPU]     [94] Deleted all tunnels for ue id 20992 (1 tunnels deleted)
+    [RLC]      Remove UE 20992
+    [NR_MAC]   Remove NR rnti 0x5200
+    ```
+
+*   **Log: CU-CP (`oai-cu-vm`) logs the final success and triggers the cleanup.**
+    The CU-CP receives the `RRCReconfigurationComplete` via the new path (target DU), updates the UE's RNTI from `5200` to `dfdf`, and declares the handover complete. It then explicitly triggers the release of the UE context on the source DU (assoc\_id `6`).
+
+    ```log
+    [NR_RRC]   UE 1 handover: update RNTI from 5200 to dfdf
+    [NR_RRC]   [UL] (cellID bc614f, UE ID 1 RNTI dfdf) Received RRCReconfigurationComplete
+    [NR_RRC]   handover for UE 1/RNTI dfdf complete!
+    [NR_RRC]   UE 1 Handover: trigger release on DU assoc_id 6
+    ```
+
+At this point, the procedure is complete. The UE is actively communicating through the target DU, and the data from the continuous ping test is flowing seamlessly through the new data path.
+
+---
+### **Part 10: CRITICAL Cleanup**
 
 To avoid ANY charges after you are finished, you **MUST** tear down your environment.
 

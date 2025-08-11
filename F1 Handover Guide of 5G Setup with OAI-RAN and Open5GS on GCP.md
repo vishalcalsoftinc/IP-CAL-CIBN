@@ -5,73 +5,10 @@ This guide provides a complete, step-by-step walkthrough for deploying a virtual
 
 The final architecture will consist of a consolidated OAI CU-CP/CU-UP, two OAI DUs, and a simulated OAI UE, configured to demonstrate a successful F1 handover between the two DUs.
 
-```mermaid
-graph LR
+![[Pasted image 20250810173647.png]]
 
-    %% --- Node Definitions ---
+![[Pasted image 20250810165005.png]]
 
-    %% We define each logical component as a node.
-
-    %% The label contains all text, using <br/> for line breaks.
-
-  
-
-    UE_NODE["172.17.0.91<br/><br/><b>UE</b><br/><br/>oai-nr-ue-vm<br/>(rf-server)"];
-
-    %% This invisible subgraph forces DU0 and DU1 into a vertical stack
-
-    subgraph DU_Stack [ ]
-
-        style DU_Stack fill:transparent,stroke:transparent
-
-        direction TB
-
-        DU0["172.17.0.92<br/><br/><b>DU0</b><br/>Cell ID: 12345678<br/>(0xbc614e)<br/><br/>oai-du0-vm<br/>(rf-client)"]
-
-        DU1["172.17.0.94<br/><br/><b>DU1</b><br/>Cell ID: 12345679<br/>(0xbc614f)<br/><br/>oai-du1-vm<br/>(rf-client)"]
-
-    end
-
-    CU_NODE["172.17.0.93<br/><br/><b>CUCP</b><br/><b>CUUP</b><br/><br/>oai-cu-vm"];
-
-    CORE_NODE["172.17.0.95<br/><br/><b>Open5GS</b><br/><br/>open5gs-vm"];
-
-  
-
-    %% --- Connections ---
-
-    %% Define the links between the nodes.
-
-    UE_NODE <--> DU0;
-
-    UE_NODE -. Handover .-> DU1;
-
-    DU0 --> CU_NODE;
-
-    DU1 --> CU_NODE;
-
-    CU_NODE <--> CORE_NODE;
-
-  
-
-    %% --- Styling ---
-
-    %% This class defines the black-box appearance and is applied to all nodes below.
-
-    classDef componentNode fill:#1a1a1a,stroke:#fff,stroke-width:1px,color:#fff,font-family:monospace,text-align:center;
-
-    %% Corrected Class Application
-
-    class UE_NODE componentNode;
-
-    class DU0 componentNode;
-
-    class DU1 componentNode;
-
-    class CU_NODE componentNode;
-
-    class CORE_NODE componentNode;
-```
 
 ---
 
@@ -442,12 +379,12 @@ cd cmake_targets
 
 Create the configuration files in `/etc/oai/` on their respective VMs.
 
-#### **6.1. On `oai-cu-vm` (Consolidated CU-CP and CU-UP):**
-*   Create `/etc/oai/oai-cucp.conf` 
+#### **6.1. On `oai-cu-vm` (Consolidated CU):**
+*   Create `/etc/oai/oai-cu.conf` 
 ```conf
-Active_gNBs = ( "oai-cu-cp");
+Active_gNBs = ( "gNB-Eurecom-CU");
 # Asn1_verbosity, choice in: none, info, annoying
-Asn1_verbosity = "info";
+Asn1_verbosity = "none";
 
 gNBs =
 (
@@ -457,19 +394,18 @@ gNBs =
 
 #     cell_type =  "CELL_MACRO_GNB";
 
-    gNB_name  =  "oai-cu-cp";
+    gNB_name  =  "gNB-Eurecom-CU";
 
     // Tracking area code, 0x0000 and 0xfffe are reserved values
     tracking_area_code  =  1;
     plmn_list = ({ mcc = 999; mnc = 70; mnc_length = 2; snssaiList = ({ sst = 1, sd = 0x000001 }, { sst = 1, sd = 0xFFFFFF }, { sst = 2, sd = 0x111111 }) });
 
-
     nr_cellid = 12345678L;
 
     tr_s_preference = "f1";
 
-    local_s_address = "172.17.0.93"; # cucp vm ip
-    remote_s_address = "172.17.0.92"; # du vm ip
+    local_s_address = "172.17.0.93"; // cu-vm-ip
+    remote_s_address = "172.17.0.92"; // du0-vm-ip
     local_s_portc   = 501;
     local_s_portd   = 2153;
     remote_s_portc  = 500;
@@ -485,22 +421,14 @@ gNBs =
 
 
     ////////// AMF parameters:
-    amf_ip_address = ({ ipv4 = "172.17.0.95"; });
-
-    E1_INTERFACE =
-    (
-      {
-        type = "cp";
-        ipv4_cucp = "172.17.0.93"; # cucp vm ip
-        port_cucp = 38462;
-        ipv4_du1 = "172.17.0.94"; # du1 vm ip
-        port_du1 = 38462;
-      }
-    )
+    amf_ip_address = ({ ipv4 = "172.17.0.95"; }); // open5gs-vm-ip
 
     NETWORK_INTERFACES :
     {
-        GNB_IPV4_ADDRESS_FOR_NG_AMF              = "172.17.0.93"; # cucp vm ip
+
+        GNB_IPV4_ADDRESS_FOR_NG_AMF              = "172.17.0.93"; // cu-vm-ip
+        GNB_IPV4_ADDRESS_FOR_NGU                 = "172.17.0.93"; // cu-vm-ip
+        GNB_PORT_FOR_S1U                         = 2152; # Spec 2152
     };
   }
 );
@@ -530,253 +458,88 @@ security = {
        rlc_log_level                         ="debug";
        pdcp_log_level                        ="info";
        rrc_log_level                         ="info";
-       f1ap_log_level                         ="info";
+       f1ap_log_level                         ="debug";
        ngap_log_level                         ="debug";
-       sctp_log_level                         ="info";
     };
-
-# e2_agent = {
-#   near_ric_ip_addr = "10.0.9.20";
-#   sm_dir = "/usr/local/lib/flexric/"
-# }
-
-
-```
-
-*   Create `/etc/oai/oai-cuup.conf` 
-```conf
-Active_gNBs = ( "oai-cu-cp");
-# Asn1_verbosity, choice in: none, info, annoying
-Asn1_verbosity = "none";
-
-gNBs =
-(
- {
-    ////////// Identification parameters:
-    gNB_ID = 0xe00;
-    gNB_CU_UP_ID = 0xe00;
-
-#     cell_type =  "CELL_MACRO_GNB";
-
-    gNB_name  =  "oai-cuup-sd1";
-
-    // Tracking area code, 0x0000 and 0xfffe are reserved values
-    tracking_area_code  =  1;
-    plmn_list = ({ mcc = 999; mnc = 70; mnc_length = 2; snssaiList = ({ sst = 1, sd = 0x000001 },{ sst = 1, sd = 0xFFFFFF }) });
-
-
-    tr_s_preference = "f1";
-
-    local_s_address = "172.17.0.93";  #cu-up vm IP
-    remote_s_address = "172.17.0.92"; #du vm IP
-    local_s_portc   = 501;
-    local_s_portd   = 2153;
-    remote_s_portc  = 500;
-    remote_s_portd  = 2153;
-
-    # ------- SCTP definitions
-    SCTP :
-    {
-        # Number of streams to use in input/output
-        SCTP_INSTREAMS  = 5;
-        SCTP_OUTSTREAMS = 5;
-    };
-
-    E1_INTERFACE =
-    (
-      {
-        type = "up";
-        ipv4_cucp = "172.17.0.93"; #cu-cp vm IP
-        ipv4_cuup = "172.17.0.93"; #cu-up vm IP
-      }
-    )
-
-    NETWORK_INTERFACES :
-    {
-        GNB_IPV4_ADDRESS_FOR_NG_AMF              = "172.17.0.95"; # AMF IP
-        GNB_IPV4_ADDRESS_FOR_NGU                 = "172.17.0.93"; # CU-UP IP
-        GNB_PORT_FOR_S1U                         = 2152; # Spec 2152
-    };
-  }
-);
-
-log_config : {
-  global_log_level = "info";
-  pdcp_log_level   = "info";
-  f1ap_log_level   = "info";
-  ngap_log_level   = "info";
-};
-
-# e2_agent = {
-#   near_ric_ip_addr = "10.0.9.20";
-#   sm_dir = "/usr/local/lib/flexric/"
-# }
-
 
 ```
 
 #### **6.2. On `oai-du0-vm` (Source DU0):**
 *   Create `/etc/oai/oai-du0.conf`. Use the DU0 configuration (with `physCellId = 0`).
 *   **Crucially, modify the `rfsimulator` block** to configure this DU as a client pointing to the UE's IP address.
+
 ```conf
 Active_gNBs = ( "oai-cu-cp");
-# Asn1_verbosity, choice in: none, info, annoying
 Asn1_verbosity = "info";
 
 gNBs =
 (
  {
-    ////////// Identification parameters:
     gNB_ID = 0xe00;
     gNB_DU_ID = 0xe01;
-
-#     cell_type =  "CELL_MACRO_GNB";
-
     gNB_name  =  "oai-cu-cp";
-
-    // Tracking area code, 0x0000 and 0xfffe are reserved values
     tracking_area_code  =  1;
-    #plmn_list = ({ mcc = 208; mnc = 99; mnc_length = 2; snssaiList = ({ sst = 1 }, { sst = 2 }, { sst = 3 } ) });
     plmn_list = ({ mcc = 999; mnc = 70; mnc_length = 2; snssaiList =  ({ sst = 1, sd = 0x000001 },{ sst = 1, sd = 0xFFFFFF }) });
-
-
     nr_cellid = 12345678L;
-
-    ////////// Physical parameters:
-
-    min_rxtxtime                                              = 6;
+    min_rxtxtime = 6;
 
     servingCellConfigCommon = (
     {
- #spCellConfigCommon
-
-      physCellId                                                    = 0;
-
-#  downlinkConfigCommon
-    #frequencyInfoDL
-      # this is 3600 MHz + 43 PRBs@30kHz SCS (same as initial BWP)
-      absoluteFrequencySSB                                          = 641280;
-      dl_frequencyBand                                                 = 78;
-      # this is 3600 MHz
-      dl_absoluteFrequencyPointA                                       = 640008;
-      #scs-SpecificCarrierList
-        dl_offstToCarrier                                              = 0;
-# subcarrierSpacing
-# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
-        dl_subcarrierSpacing                                           = 1;
-        dl_carrierBandwidth                                            = 106;
-     #initialDownlinkBWP
-      #genericParameters
-        # this is RBstart=27,L=48 (275*(L-1))+RBstart
-        initialDLBWPlocationAndBandwidth                               = 28875; # 6366 12925 12956 28875 12952
-# subcarrierSpacing
-# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
-        initialDLBWPsubcarrierSpacing                                           = 1;
-      #pdcch-ConfigCommon
-        initialDLBWPcontrolResourceSetZero                              = 12;
-        initialDLBWPsearchSpaceZero                                             = 0;
-
-  #uplinkConfigCommon
-     #frequencyInfoUL
-      ul_frequencyBand                                                 = 78;
-      #scs-SpecificCarrierList
-      ul_offstToCarrier                                              = 0;
-# subcarrierSpacing
-# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
-      ul_subcarrierSpacing                                           = 1;
-      ul_carrierBandwidth                                            = 106;
-      pMax                                                          = 20;
-     #initialUplinkBWP
-      #genericParameters
-        initialULBWPlocationAndBandwidth                            = 28875;
-# subcarrierSpacing
-# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
-        initialULBWPsubcarrierSpacing                                           = 1;
-      #rach-ConfigCommon
-        #rach-ConfigGeneric
-          prach_ConfigurationIndex                                  = 98;
-#prach_msg1_FDM
-#0 = one, 1=two, 2=four, 3=eight
-          prach_msg1_FDM                                            = 0;
-          prach_msg1_FrequencyStart                                 = 0;
-          zeroCorrelationZoneConfig                                 = 13;
-          preambleReceivedTargetPower                               = -96;
-#preamblTransMax (0...10) = (3,4,5,6,7,8,10,20,50,100,200)
-          preambleTransMax                                          = 6;
-#powerRampingStep
-# 0=dB0,1=dB2,2=dB4,3=dB6
-        powerRampingStep                                            = 1;
-#ra_ReponseWindow
-#1,2,4,8,10,20,40,80
-        ra_ResponseWindow                                           = 4;
-#ssb_perRACH_OccasionAndCB_PreamblesPerSSB_PR
-#1=oneeighth,2=onefourth,3=half,4=one,5=two,6=four,7=eight,8=sixteen
-        ssb_perRACH_OccasionAndCB_PreamblesPerSSB_PR                = 4;
-#one (0..15) 4,8,12,16,...60,64
-        ssb_perRACH_OccasionAndCB_PreamblesPerSSB                   = 14;
-#ra_ContentionResolutionTimer
-#(0..7) 8,16,24,32,40,48,56,64
-        ra_ContentionResolutionTimer                                = 7;
-        rsrp_ThresholdSSB                                           = 19;
-#prach-RootSequenceIndex_PR
-#1 = 839, 2 = 139
-        prach_RootSequenceIndex_PR                                  = 2;
-        prach_RootSequenceIndex                                     = 1;
-        # SCS for msg1, can only be 15 for 30 kHz < 6 GHz, takes precendence over the one derived from prach-ConfigIndex
-        #
-        msg1_SubcarrierSpacing                                      = 1,
-# restrictedSetConfig
-# 0=unrestricted, 1=restricted type A, 2=restricted type B
-        restrictedSetConfig                                         = 0,
-
-        msg3_DeltaPreamble                                          = 1;
-        p0_NominalWithGrant                                         =-90;
-
-# pucch-ConfigCommon setup :
-# pucchGroupHopping
-# 0 = neither, 1= group hopping, 2=sequence hopping
-        pucchGroupHopping                                           = 0;
-        hoppingId                                                   = 40;
-        p0_nominal                                                  = -90;
-
-      ssb_PositionsInBurst_Bitmap                                   = 1;
-
-# ssb_periodicityServingCell
-# 0 = ms5, 1=ms10, 2=ms20, 3=ms40, 4=ms80, 5=ms160, 6=spare2, 7=spare1
-      ssb_periodicityServingCell                                    = 2;
-
-# dmrs_TypeA_position
-# 0 = pos2, 1 = pos3
-      dmrs_TypeA_Position                                           = 0;
-
-# subcarrierSpacing
-# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
-      subcarrierSpacing                                             = 1;
-
-
-  #tdd-UL-DL-ConfigurationCommon
-# subcarrierSpacing
-# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
-      referenceSubcarrierSpacing                                    = 1;
-      # pattern1
-      # dl_UL_TransmissionPeriodicity
-      # 0=ms0p5, 1=ms0p625, 2=ms1, 3=ms1p25, 4=ms2, 5=ms2p5, 6=ms5, 7=ms10
-      dl_UL_TransmissionPeriodicity                                 = 6;
-      nrofDownlinkSlots                                             = 7;
-      nrofDownlinkSymbols                                           = 6;
-      nrofUplinkSlots                                               = 2;
-      nrofUplinkSymbols                                             = 4;
-
-      ssPBCH_BlockPower                                             = -25;
+      physCellId = 0;
+      absoluteFrequencySSB = 641280;
+      dl_frequencyBand = 78;
+      dl_absoluteFrequencyPointA = 640008;
+      dl_offstToCarrier = 0;
+      dl_subcarrierSpacing = 1;
+      dl_carrierBandwidth = 106;
+      initialDLBWPlocationAndBandwidth = 28875;
+      initialDLBWPsubcarrierSpacing = 1;
+      initialDLBWPcontrolResourceSetZero = 12;
+      initialDLBWPsearchSpaceZero = 0;
+      ul_frequencyBand = 78;
+      ul_offstToCarrier = 0;
+      ul_subcarrierSpacing = 1;
+      ul_carrierBandwidth = 106;
+      pMax = 20;
+      initialULBWPlocationAndBandwidth = 28875;
+      initialULBWPsubcarrierSpacing = 1;
+      prach_ConfigurationIndex = 98;
+      prach_msg1_FDM = 0;
+      prach_msg1_FrequencyStart = 0;
+      zeroCorrelationZoneConfig = 13;
+      preambleReceivedTargetPower = -96;
+      preambleTransMax = 6;
+      powerRampingStep = 1;
+      ra_ResponseWindow = 4;
+      ssb_perRACH_OccasionAndCB_PreamblesPerSSB_PR = 4;
+      ssb_perRACH_OccasionAndCB_PreamblesPerSSB = 14;
+      ra_ContentionResolutionTimer = 7;
+      rsrp_ThresholdSSB = 19;
+      prach_RootSequenceIndex_PR = 2;
+      prach_RootSequenceIndex = 1;
+      msg1_SubcarrierSpacing = 1,
+      restrictedSetConfig = 0,
+      msg3_DeltaPreamble = 1;
+      p0_NominalWithGrant = -90;
+      pucchGroupHopping = 0;
+      hoppingId = 40;
+      p0_nominal = -90;
+      ssb_PositionsInBurst_Bitmap = 1;
+      ssb_periodicityServingCell = 2;
+      dmrs_TypeA_Position = 0;
+      subcarrierSpacing = 1;
+      referenceSubcarrierSpacing = 1;
+      dl_UL_TransmissionPeriodicity = 6;
+      nrofDownlinkSlots = 7;
+      nrofDownlinkSymbols = 6;
+      nrofUplinkSlots = 2;
+      nrofUplinkSymbols = 4;
+      ssPBCH_BlockPower = -25;
      }
-
   );
 
-
-    # ------- SCTP definitions
     SCTP :
     {
-        # Number of streams to use in input/output
         SCTP_INSTREAMS  = 2;
         SCTP_OUTSTREAMS = 2;
     };
@@ -788,8 +551,8 @@ MACRLCs = (
     num_cc           = 1;
     tr_s_preference  = "local_L1";
     tr_n_preference  = "f1";
-    local_n_address = "172.17.0.92";   #du vm IP
-    remote_n_address = "172.17.0.93";    #  "172.17.0.94";  #cu-up vm IP
+    local_n_address = "172.17.0.92";
+    remote_n_address = "172.17.0.93";
     local_n_portc   = 500;
     local_n_portd   = 2153;
     remote_n_portc  = 38472;
@@ -805,7 +568,7 @@ L1s = (
   tr_n_preference = "local_mac";
   prach_dtx_threshold = 200;
   pucch0_dtx_threshold = 150;
-  ofdm_offset_divisor = 8; #set this to UINT_MAX for offset 0
+  ofdm_offset_divisor = 8;
 }
 );
 
@@ -827,7 +590,7 @@ RUs = (
 rfsimulator: {
 serveraddr = "172.17.0.91";
     serverport = 4043;
-    options = (); #("saviq"); or/and "chanmod"
+    options = ();
     modelname = "AWGN";
     IQfile = "/tmp/rfsimulator.iqs"
 }
@@ -841,14 +604,11 @@ log_config: {
   f1ap_log_level = "info";
 };
 
-#/* configuration for channel modelisation */
-#/* To be included in main config file when */
-#/* channel modelisation is used (rfsimulator with chanmod options enabled) */
 channelmod = {
   max_chan = 10;
   modellist = "modellist_rfsimu_1";
   modellist_rfsimu_1 = (
-    { # DL, modify on UE side
+    {
       model_name     = "rfsimu_channel_enB0"
       type           = "AWGN";
       ploss_dB       = 20;
@@ -857,7 +617,7 @@ channelmod = {
       offset         = 0;
       ds_tdl         = 0;
     },
-    { # UL, modify on gNB side
+    {
       model_name     = "rfsimu_channel_ue0"
       type           = "AWGN";
       ploss_dB       = 20;
@@ -869,10 +629,6 @@ channelmod = {
   );
 };
 
-#e2_agent = {
- # near_ric_ip_addr = "10.0.9.20";
-  #sm_dir = "/usr/local/lib/flexric/"
-#}
 
 ```
 
@@ -1155,18 +911,12 @@ sudo iptables -t nat -A POSTROUTING -o ens4 -j MASQUERADE
 sudo iptables -I FORWARD 1 -j ACCEPT
 ```
 
-**3. Start the CU-CP (on `oai-cu-vm`)**
+**3. Start the CU (on `oai-cu-vm`)**
 ```bash
 # On: oai-cucp-vm
 cd ~/openairinterface5g/cmake_targets/ran_build/build
-sudo -E ./nr-softmodem -O /etc/oai/oai-cucp.conf --sa --telnetsrv --telnetsrv.shrmod ci
-```
+sudo -E ./nr-softmodem -O /etc/oai/oai-cu.conf --sa --telnetsrv --telnetsrv.shrmod ci
 
-**4. Start the CU-UP (on `oai-cu-vm`)**
-```bash
-# On: oai-cucp-vm (in a new terminal)
-cd ~/openairinterface5g/cmake_targets/ran_build/build
-sudo -E ./nr-cuup -O /etc/oai/oai-cuup.conf --telnetsrv --telnetsrv.shrmod ci
 ```
 
 **5. Start the NR UE as the RF Server (on `oai-nr-ue-vm`)**
@@ -1218,69 +968,7 @@ echo ci trigger_f1_ho | nc 172.17.0.93 9090 && echo
 
 This section breaks down the key stages of the F1 handover you triggered. By cross-referencing these log snippets with your own terminal windows, you can trace the entire procedure from start to finish.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant User
-    participant CU-CP as "oai-cu-vm"
-    participant Source DU (DU0) as "oai-du0-vm"
-    participant Target DU (DU1) as "oai-du1-vm"
-    participant UE as "oai-nr-ue-vm"
-
-    %% == Step 1: Initial State (Already established) ==
-    Note over CU-CP, UE: Initial State: Network is up.<br/>UE is attached and has an active PDU session via Source DU (PCI 0).
-
-    %% == Step 2: Handover Trigger ==
-    User->>CU-CP: Telnet Command: "ci trigger_f1_ho"
-    activate CU-CP
-
-    %% == Step 3: Handover Preparation ==
-    Note over CU-CP: Handover triggered for UE (RNTI 5200) to Target DU (PCI 1)
-    CU-CP->>Target DU (DU1): F1AP: UE CONTEXT SETUP REQUEST
-    activate Target DU (DU1)
-    Note over Target DU (DU1): Target DU prepares resources,<br/>allocates new C-RNTI (dfdf).
-    Target DU (DU1)-->>CU-CP: F1AP: UE CONTEXT SETUP RESPONSE
-    deactivate Target DU (DU1)
-
-    Note over CU-CP: CU-CP now commands UE to switch via the existing path.
-    CU-CP->>Source DU (DU0): F1AP: UE CONTEXT MODIFICATION REQUEST<br/>(contains RRCReconfiguration message)
-    activate Source DU (DU0)
-
-    Source DU (DU0)->>UE: RRCReconfiguration (with reconfigurationWithSync)
-    deactivate Source DU (DU0)
-    activate UE
-
-    %% == Step 4 & 5: UE Re-synchronization and Access ==
-    Note over UE: UE receives command, detaches from Source DU (PCI 0).<br/>Starts searching for Target DU (PCI 1).
-    
-    loop Synchronization & Random Access on Target Cell
-        UE->>Target DU (DU1): PHY: Synchronization Signals (Finds PCI 1)
-        UE->>Target DU (DU1): MAC: PRACH Preamble (CFRA)
-        activate Target DU (DU1)
-        Target DU (DU1)-->>UE: MAC: Random Access Response (RAR)
-        deactivate Target DU (DU1)
-    end
-    Note over UE: Sync and RA successful.
-
-    UE->>Target DU (DU1): RRCReconfigurationComplete
-    activate Target DU (DU1)
-    
-    %% == Step 6: Network Path Switch and Cleanup ==
-    Note over Target DU (DU1): Target DU forwards the confirmation to CU-CP.
-    Target DU (DU1)->>CU-CP: F1AP: UL RRC Message Transfer<br/>(contains RRCReconfigurationComplete)
-    deactivate Target DU (DU1)
-
-    Note over CU-CP: Handover success confirmed!<br/>Switches data path and starts cleanup.
-    Note over CU-CP, UE: Data Plane (GTP-U Path) is now switched to Target DU (DU1).
-
-    CU-CP->>Source DU (DU0): F1AP: UE CONTEXT RELEASE COMMAND
-    activate Source DU (DU0)
-    Note over Source DU (DU0): Source DU tears down all<br/>contexts for the UE (RNTI 5200).
-    Source DU (DU0)-->>CU-CP: F1AP: UE CONTEXT RELEASE COMPLETE
-    deactivate Source DU (DU0)
-    deactivate CU-CP
-    deactivate UE
-```
+![[Pasted image 20250810165528.png]]
 
 #### **Step 1: Network Ready State - UE Attached via Source DU (DU0)**
 
@@ -1450,3 +1138,10 @@ To avoid ANY charges after you are finished, you **MUST** tear down your environ
     *   Select the `oai-5g-nat` gateway and click **DELETE**.
 3.  **Delete VPC, Firewall Rules, and Static IPs:**
     *   Optionally, delete these components to leave your project completely clean.
+
+
+### **Links**
+- F1-Handover procedure draw.io --> https://drive.google.com/file/d/1YerukXAROqbL3o8jTNwJxVJxzveAqrha/view?usp=sharing
+- F1-Handover for rf-sim setup draw.io --> https://drive.google.com/file/d/1wpv_xx1RJUNTTTLFXiSuFpAVwUbzWNB_/view?usp=sharing
+- Detailed log files --> 
+- Demo video --> 

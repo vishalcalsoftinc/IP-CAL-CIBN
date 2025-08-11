@@ -945,6 +945,6 @@ You have successfully deployed a 5G Standalone network on GCP. The OAI RAN compo
 
 ### Links
 
-- [[F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP]]
+- [[F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP with CU split]]
 - [[terraform code for this]]
 - [[ansible code for automating this setup]]

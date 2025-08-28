@@ -42,6 +42,7 @@ The X2-based handover is preferred when a direct X2 interface exists between eNo
 | 7        | UE executes handover                 | Performs Random Access to target eNodeB, sends Handover Confirm.                                     |
 | 8        | Path Switch                          | Target eNodeB sends Path Switch Request to MME, updates S-GW bearer path.                            |
 | 9        | Resource Release                     | Target eNodeB sends UE Context Release to source eNodeB.                                             |
+|          |                                      |                                                                                                      |
 
 ```mermaid
 sequenceDiagram

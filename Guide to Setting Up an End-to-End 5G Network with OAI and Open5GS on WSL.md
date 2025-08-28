@@ -91,7 +91,7 @@ cd cmake_targets
 ./build_oai -I
 
 # Remove the conflicting package
-sudo apt remove --y libyaml-cppdev && sudo apt autoremove -y
+sudo apt remove -y libyaml-cpp-dev && sudo apt autoremove -y
 
 # Build the gNB (CU/DU) components
 ./build_oai -w SIMU --gNB --ninja
@@ -473,7 +473,7 @@ security = {
 
 # Logging Configuration
 log_config: {
-  global_log_level = "debug";
+  global_log_level = "info";
   hw_log_level = "debug";
   phy_log_level = "debug";
   mac_log_level = "debug";
@@ -973,6 +973,8 @@ cd oai/cmake_targets/ran_build/build
 sudo ./nr-uesoftmodem -O /etc/oai/nr-ue.conf --rfsim --sa --nokrnmod 
 
 sudo ./nr-uesoftmodem -r 106 --numerology 1 --band 78 -C 3619200000 --ssb 516 --rfsim --rfsimulator.serveraddr 172.28.251.212 -O /etc/oai/nr-ue.conf 
+
+sudo ./nr-uesoftmodem -r 106 --numerology 1 --band 78 -C 3619200000 --ssb 516 --rfsim -O /etc/oai/nr-ue.conf
 
 ```
 The UE will now attempt to connect to the DU via the RF simulator, and the registration process with the 5G core will begin.

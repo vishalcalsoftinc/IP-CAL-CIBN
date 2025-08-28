@@ -38,6 +38,7 @@ Google Cloud offers a 90-day, $300 free trial for new users, which is more than 
         *   Region: `us-central1` (or another cost-effective US region)
         *   IP address range: `172.17.0.0/24`
     *   Click **Create**.
+    *   **Why:** A subnet is a segmented range of IP addresses within our VPC, tied to a specific geographic region. By creating a custom subnet (oai-subnet with 172.17.0.0/24), we gain full control over the IP addressing scheme. This is critical for our 5G lab, as we need to assign predictable, static IP addresses to our CU, DUs, and 5GC for their configuration files to work correctly.
 
 2.  **Configure Firewall Rules:**
     *   Navigate to **VPC network > Firewall**.
@@ -50,6 +51,7 @@ Google Cloud offers a 90-day, $300 free trial for new users, which is more than 
         *   **Source IPv4 ranges:** `0.0.0.0/0` (allows SSH from any IP)
         *   **Protocols and ports:** Specified protocols and ports > `tcp:22`
         *   Click **Create**.
+        *   **Why:** This rule opens TCP port 22, the standard port for SSH. This is our "management door." It allows us to connect to our VMs from our local machine using an SSH client (like VS Code or a terminal) to install software, edit configuration files, and run the OAI components. We set the source to 0.0.0.0/0 for convenience in a lab environment; our connection is still secured by the mandatory use of SSH keys.
     *   **Rule 2: Allow Internal Communication**
         *   Click **CREATE FIREWALL RULE**.
         *   **Name:** `allow-internal-all`
@@ -59,6 +61,7 @@ Google Cloud offers a 90-day, $300 free trial for new users, which is more than 
         *   **Source IPv4 ranges:** `172.17.0.0/24` (the range of our subnet)
         *   **Protocols and ports:** Allow all
         *   Click **Create**.
+        *   **Why:** This is the most critical rule for the 5G network itself. The CU, DUs, and 5GC communicate using various protocols (F1AP, NGAP, GTP-U, etc.) over different ports. Instead of creating many complex rules, this single rule simplifies our setup by stating: "Any VM inside our private subnet (172.17.0.0/24) is trusted and is allowed to communicate freely with any other VM in that same subnet." This allows all the 5G interfaces to connect without being blocked by the firewall.
 
 3.  **Configure Cloud NAT for Internet Access:**
     To allow the UE to access the internet through the 5G core, we'll use a Cloud NAT instead of `iptables`.
@@ -69,6 +72,7 @@ Google Cloud offers a 90-day, $300 free trial for new users, which is more than 
     *   **Region:** `us-central1`
     *   **Cloud Router:** Click **Create new router**, name it `oai-5g-router`, and click **Create**.
     *   Leave other settings as default and click **Create**.
+    *   **Why:** The final goal of our 5G network is to provide the UE with data connectivity. After the UE connects, we will test its connection by pinging an internet address like 8.8.8.8. Cloud NAT provides the mechanism for this. It takes traffic from a private resource (like our UE, whose traffic is routed through the Open5GS core) and translates its private IP address to a public IP address, allowing it to reach the internet. It is a highly available, managed service that avoids the need for a fragile, manual iptables setup on a single VM for internet access.
 
 ---
 
@@ -319,6 +323,22 @@ Update the configuration files with the new IP address of your `open5gs-vm`.
     sudo iptables -t nat -A POSTROUTING -o ens4 -j MASQUERADE
     sudo iptables -I FORWARD 1 -j ACCEPT
     ```
+    
+   **Why these commands are necessary:**
+   
+   These three commands work together to turn the `open5gs-vm` into a functional internet gateway for the UE. While **Cloud NAT** provides internet access for the VM itself, these rules are necessary to allow the simulated UE—which is in a *different, virtual 5G network*—to use the VM as a "pass-through" or router.
+   
+   *   `sudo sysctl -w net.ipv4.ip_forward=1`
+        *   **What it does:** This command enables IP forwarding at the Linux kernel level.
+        *   **Why it's needed:** By default, a Linux system only processes network packets addressed to itself and will discard any others. Enabling this setting turns the VM into a basic **router**, allowing it to accept traffic from the UE (e.g., source IP `10.45.0.2`) and forward it towards its destination on the internet. This is the master switch for all routing.
+    
+   *   `sudo iptables -t nat -A POSTROUTING -o ens4 -j MASQUERADE`
+        *   **What it does:** This sets up a dynamic **Network Address Translation (NAT)** rule.
+        *   **Why it's needed:** The UE's IP address (`10.45.0.2`) is private to the 5G network and is not routable on the external network or internet. ==This rule inspects any packet from the UE just before it leaves the VM's main network interface (`ens4`). It then replaces the UE's private source IP with the VM's own IP address==. This "masquerade" makes the traffic look like it originated from the `open5gs-vm` itself, ensuring that responses from the internet can find their way back.
+   
+   *   `sudo iptables -I FORWARD 1 -j ACCEPT`
+        *   **What it does:** This is a **firewall rule** that permits the forwarded traffic.
+        *   **Why it's needed:** Even with routing enabled, the VM's internal firewall might block packets that are not originating from or destined for the VM itself. This rule is inserted at the beginning of the firewall's `FORWARD` chain to explicitly allow these packets from the UE to pass *through* the VM, completing the pathway to the internet.
 
 6.  **Setup and Add Subscriber in WebUI:**
 
@@ -363,13 +383,16 @@ On **each of the four OAI VMs** (`oai-cu-vm`, `oai-du0-vm`, `oai-du1-vm`, `oai-n
 
 ```bash
 # Run on all four OAI VMs
-sudo apt update && sudo apt install -y git
+sudo apt update
+sudo apt install git cmake ninja-build build-essential
+
 cd ~
 git clone https://gitlab.eurecom.fr/oai/openairinterface5g.git
 cd openairinterface5g
 source oaienv
 cd cmake_targets
 # This command builds all necessary components with telnet support
+# ./build_oai -I
 ./build_oai --ninja --nrUE --gNB --build-lib telnetsrv
 ```
 
@@ -632,7 +655,7 @@ channelmod = {
 
 ```
 
-#### **6.3. On `oai-du1-vm` (Source DU0):**
+#### **6.3. On `oai-du1-vm` (Target DU1):**
 *   Create `/etc/oai/oai-du1.conf`. Use the DU1 configuration (with gNB_DU_ID = 0xe02 and physCellId = 1).
 *   **Crucially, modify the `rfsimulator` block** to configure this DU as a client pointing to the UE's IP address.
 ```conf
@@ -902,6 +925,11 @@ sudo systemctl start open5gs-pcfd
 
 # Verify that all services are running 
 sudo systemctl status open5gs-*
+
+# To check logs
+sudo journalctl -u open5gs-amfd -n 200 --no-pager
+sudo journalctl -u open5gs-upfd -n 200 --no-pager
+
 ```
 
 **2. Enable NAT (on `open5gs-vm`)**
@@ -913,7 +941,7 @@ sudo iptables -I FORWARD 1 -j ACCEPT
 
 **3. Start the CU (on `oai-cu-vm`)**
 ```bash
-# On: oai-cucp-vm
+# On: oai-cu-vm
 cd ~/openairinterface5g/cmake_targets/ran_build/build
 sudo -E ./nr-softmodem -O /etc/oai/oai-cu.conf --sa --telnetsrv --telnetsrv.shrmod ci
 
@@ -1145,3 +1173,260 @@ To avoid ANY charges after you are finished, you **MUST** tear down your environ
 - F1-Handover for rf-sim setup draw.io --> https://drive.google.com/file/d/1wpv_xx1RJUNTTTLFXiSuFpAVwUbzWNB_/view?usp=sharing
 - Detailed log files --> 
 - Demo video --> 
+
+```bash
+Active_gNBs = ( "oai-cu-cp");
+# Asn1_verbosity, choice in: none, info, annoying
+Asn1_verbosity = "info";
+
+gNBs =
+(
+ {
+    ////////// Identification parameters:
+    gNB_ID = 0xe00;
+    gNB_DU_ID = 0xe01;
+
+#     cell_type =  "CELL_MACRO_GNB";
+
+    gNB_name  =  "oai-cu-cp";
+
+    // Tracking area code, 0x0000 and 0xfffe are reserved values
+    tracking_area_code  =  1;
+    #plmn_list = ({ mcc = 208; mnc = 99; mnc_length = 2; snssaiList = ({ sst = 1 }, { sst = 2 }, { sst = 3 } ) });
+    plmn_list = ({ mcc = 999; mnc = 70; mnc_length = 2; snssaiList =  ({ sst = 1, sd = 0x111111 },{ sst = 1, sd = 0xFFFFFF }) });
+
+
+    nr_cellid = 12345678L;
+
+    ////////// Physical parameters:
+
+    min_rxtxtime                                              = 6;
+
+    servingCellConfigCommon = (
+    {
+ #spCellConfigCommon
+
+      physCellId                                                    = 0;
+
+#  downlinkConfigCommon
+    #frequencyInfoDL
+      # this is 3600 MHz + 43 PRBs@30kHz SCS (same as initial BWP)
+      absoluteFrequencySSB                                          = 641280;
+      dl_frequencyBand                                                 = 78;
+      # this is 3600 MHz
+      dl_absoluteFrequencyPointA                                       = 640008;
+      #scs-SpecificCarrierList
+        dl_offstToCarrier                                              = 0;
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
+        dl_subcarrierSpacing                                           = 1;
+        dl_carrierBandwidth                                            = 106;
+     #initialDownlinkBWP
+      #genericParameters
+        # this is RBstart=27,L=48 (275*(L-1))+RBstart
+        initialDLBWPlocationAndBandwidth                               = 28875; # 6366 12925 12956 28875 12952
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
+        initialDLBWPsubcarrierSpacing                                           = 1;
+      #pdcch-ConfigCommon
+        initialDLBWPcontrolResourceSetZero                              = 12;
+        initialDLBWPsearchSpaceZero                                             = 0;
+
+  #uplinkConfigCommon
+     #frequencyInfoUL
+      ul_frequencyBand                                                 = 78;
+      #scs-SpecificCarrierList
+      ul_offstToCarrier                                              = 0;
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
+      ul_subcarrierSpacing                                           = 1;
+      ul_carrierBandwidth                                            = 106;
+      pMax                                                          = 20;
+     #initialUplinkBWP
+      #genericParameters
+        initialULBWPlocationAndBandwidth                            = 28875;
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
+        initialULBWPsubcarrierSpacing                                           = 1;
+      #rach-ConfigCommon
+        #rach-ConfigGeneric
+          prach_ConfigurationIndex                                  = 98;
+#prach_msg1_FDM
+#0 = one, 1=two, 2=four, 3=eight
+          prach_msg1_FDM                                            = 0;
+          prach_msg1_FrequencyStart                                 = 0;
+          zeroCorrelationZoneConfig                                 = 13;
+          preambleReceivedTargetPower                               = -96;
+#preamblTransMax (0...10) = (3,4,5,6,7,8,10,20,50,100,200)
+          preambleTransMax                                          = 6;
+#powerRampingStep
+# 0=dB0,1=dB2,2=dB4,3=dB6
+        powerRampingStep                                            = 1;
+#ra_ReponseWindow
+#1,2,4,8,10,20,40,80
+        ra_ResponseWindow                                           = 4;
+#ssb_perRACH_OccasionAndCB_PreamblesPerSSB_PR
+#1=oneeighth,2=onefourth,3=half,4=one,5=two,6=four,7=eight,8=sixteen
+        ssb_perRACH_OccasionAndCB_PreamblesPerSSB_PR                = 4;
+#one (0..15) 4,8,12,16,...60,64
+        ssb_perRACH_OccasionAndCB_PreamblesPerSSB                   = 14;
+#ra_ContentionResolutionTimer
+#(0..7) 8,16,24,32,40,48,56,64
+        ra_ContentionResolutionTimer                                = 7;
+        rsrp_ThresholdSSB                                           = 19;
+#prach-RootSequenceIndex_PR
+#1 = 839, 2 = 139
+        prach_RootSequenceIndex_PR                                  = 2;
+        prach_RootSequenceIndex                                     = 1;
+        # SCS for msg1, can only be 15 for 30 kHz < 6 GHz, takes precendence over the one derived from prach-ConfigIndex
+        #
+        msg1_SubcarrierSpacing                                      = 1,
+# restrictedSetConfig
+# 0=unrestricted, 1=restricted type A, 2=restricted type B
+        restrictedSetConfig                                         = 0,
+
+        msg3_DeltaPreamble                                          = 1;
+        p0_NominalWithGrant                                         =-90;
+
+# pucch-ConfigCommon setup :
+# pucchGroupHopping
+# 0 = neither, 1= group hopping, 2=sequence hopping
+        pucchGroupHopping                                           = 0;
+        hoppingId                                                   = 40;
+        p0_nominal                                                  = -90;
+
+      ssb_PositionsInBurst_Bitmap                                   = 1;
+
+# ssb_periodicityServingCell
+# 0 = ms5, 1=ms10, 2=ms20, 3=ms40, 4=ms80, 5=ms160, 6=spare2, 7=spare1
+      ssb_periodicityServingCell                                    = 2;
+
+# dmrs_TypeA_position
+# 0 = pos2, 1 = pos3
+      dmrs_TypeA_Position                                           = 0;
+
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
+      subcarrierSpacing                                             = 1;
+
+
+  #tdd-UL-DL-ConfigurationCommon
+# subcarrierSpacing
+# 0=kHz15, 1=kHz30, 2=kHz60, 3=kHz120
+      referenceSubcarrierSpacing                                    = 1;
+      # pattern1
+      # dl_UL_TransmissionPeriodicity
+      # 0=ms0p5, 1=ms0p625, 2=ms1, 3=ms1p25, 4=ms2, 5=ms2p5, 6=ms5, 7=ms10
+      dl_UL_TransmissionPeriodicity                                 = 6;
+      nrofDownlinkSlots                                             = 7;
+      nrofDownlinkSymbols                                           = 6;
+      nrofUplinkSlots                                               = 2;
+      nrofUplinkSymbols                                             = 4;
+
+      ssPBCH_BlockPower                                             = -25;
+     }
+
+  );
+
+
+    # ------- SCTP definitions
+    SCTP :
+    {
+        # Number of streams to use in input/output
+        SCTP_INSTREAMS  = 2;
+        SCTP_OUTSTREAMS = 2;
+    };
+  }
+);
+
+MACRLCs = (
+  {
+    num_cc           = 1;
+    tr_s_preference  = "local_L1";
+    tr_n_preference  = "f1";
+    local_n_address = "172.17.42.34";   #du vm IP
+    remote_n_address = "172.17.42.32";    #  "172.17.0.94";  #cu-up vm IP
+    local_n_portc   = 500;
+    local_n_portd   = 2153;
+    remote_n_portc  = 38472;
+    remote_n_portd  = 2153;
+    pusch_TargetSNRx10          = 200;
+    pucch_TargetSNRx10          = 200;
+  }
+);
+
+L1s = (
+{
+  num_cc = 1;
+  tr_n_preference = "local_mac";
+  prach_dtx_threshold = 200;
+  pucch0_dtx_threshold = 150;
+  ofdm_offset_divisor = 8; #set this to UINT_MAX for offset 0
+}
+);
+
+RUs = (
+    {
+       local_rf       = "yes"
+         nb_tx          = 1
+         nb_rx          = 1
+         att_tx         = 0
+         att_rx         = 0;
+         bands          = [78];
+         max_pdschReferenceSignalPower = -27;
+         max_rxgain                    = 114;
+         eNB_instances  = [0];
+         clock_src = "internal";
+    }
+);
+
+rfsimulator: {
+serveraddr = "172.17.42.33";
+    serverport = 4043;
+    options = (); #("saviq"); or/and "chanmod"
+    modelname = "AWGN";
+    IQfile = "/tmp/rfsimulator.iqs"
+}
+
+log_config: {
+  global_log_level = "info";
+  hw_log_level = "info";
+  phy_log_level = "info";
+  mac_log_level = "info";
+  rlc_log_level = "info";
+  f1ap_log_level = "info";
+};
+
+#/* configuration for channel modelisation */
+#/* To be included in main config file when */
+#/* channel modelisation is used (rfsimulator with chanmod options enabled) */
+channelmod = {
+  max_chan = 10;
+  modellist = "modellist_rfsimu_1";
+  modellist_rfsimu_1 = (
+    { # DL, modify on UE side
+      model_name     = "rfsimu_channel_enB0"
+      type           = "AWGN";
+      ploss_dB       = 20;
+      noise_power_dB = -4;
+      forgetfact     = 0;
+      offset         = 0;
+      ds_tdl         = 0;
+    },
+    { # UL, modify on gNB side
+      model_name     = "rfsimu_channel_ue0"
+      type           = "AWGN";
+      ploss_dB       = 20;
+      noise_power_dB = -2;
+      forgetfact     = 0;
+      offset         = 0;
+      ds_tdl         = 0;
+    }
+  );
+};
+
+#e2_agent = {
+ # near_ric_ip_addr = "10.0.9.20";
+  #sm_dir = "/usr/local/lib/flexric/"
+#}
+```

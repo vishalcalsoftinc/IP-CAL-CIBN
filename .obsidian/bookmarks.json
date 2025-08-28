@@ -29,6 +29,16 @@
       "type": "file",
       "ctime": 1754047951406,
       "path": "5G setup using Open5gs and OAI on GCP.md"
+    },
+    {
+      "type": "file",
+      "ctime": 1755678904768,
+      "path": "F1 Handover Guide of 5G Setup with OAI-RAN and OAI-CORE on GCP.md"
+    },
+    {
+      "type": "file",
+      "ctime": 1756186350648,
+      "path": "Intent Orchestration Layer.md"
     }
   ]
 }

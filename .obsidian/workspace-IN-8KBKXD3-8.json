@@ -40,6 +40,20 @@
             }
           },
           {
+            "id": "9a765319a62ec3f6",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Xn-based Handover Procedure.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Xn-based Handover Procedure"
+            }
+          },
+          {
             "id": "17ad2c4d661e2bca",
             "type": "leaf",
             "pinned": true,
@@ -56,13 +70,13 @@
             }
           },
           {
-            "id": "fc7e83acf442ed06",
+            "id": "51384973f6c5bde4",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
                 "file": "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP with CU split.md",
-                "mode": "source",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
@@ -70,149 +84,63 @@
             }
           },
           {
-            "id": "8aa88b271e6efa25",
+            "id": "fc7e83acf442ed06",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Untitled 4.md",
-                "mode": "source",
+                "file": "F1 Handover Guide of 5G Setup with OAI-RAN and Open5GS on GCP.md",
+                "mode": "preview",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Untitled 4"
+              "title": "F1 Handover Guide of 5G Setup with OAI-RAN and Open5GS on GCP"
             }
           },
           {
-            "id": "34051cc7c011d995",
+            "id": "b9e13b36dce182ad",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Untitled 2.md",
+                "file": "temp.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Untitled 2"
+              "title": "temp"
             }
           },
           {
-            "id": "dcf4dd1a248a2055",
+            "id": "ff23a10525d975e1",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Note from Vishal.md",
+                "file": "Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "Note from Vishal"
+              "title": "Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL"
             }
           },
           {
-            "id": "b066dfd26dee8904",
-            "type": "leaf",
-            "pinned": true,
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Intent Orchestration Layer.md",
-                "mode": "source",
-                "source": false
-              },
-              "pinned": true,
-              "icon": "lucide-file",
-              "title": "Intent Orchestration Layer"
-            }
-          },
-          {
-            "id": "625439863b982c7d",
+            "id": "1ff78a82c9f151d6",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "5g setup on EXSI.md",
+                "file": "5G setup using OAI-RAN and Open5GS on WSL.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "5g setup on EXSI"
-            }
-          },
-          {
-            "id": "d52f0c46e700b7ea",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "F1 Handover Guide of 5G Setup with OAI-RAN and OAI-CORE on GCP.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "F1 Handover Guide of 5G Setup with OAI-RAN and OAI-CORE on GCP"
-            }
-          },
-          {
-            "id": "5c00fe42aef433f0",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Untitled 5.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Untitled 5"
-            }
-          },
-          {
-            "id": "2da9695dcb4b7f8a",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "replacing open5gs with oai-core on gcp.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "replacing open5gs with oai-core on gcp"
-            }
-          },
-          {
-            "id": "7340bf6773e2e15d",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Note from Vishal.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "Note from Vishal"
-            }
-          },
-          {
-            "id": "ef7c054960310928",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "logs-x.md",
-                "mode": "source",
-                "source": false
-              },
-              "icon": "lucide-file",
-              "title": "logs-x"
+              "title": "5G setup using OAI-RAN and Open5GS on WSL"
             }
           }
         ],
-        "currentTab": 11
+        "currentTab": 5
       }
     ],
     "direction": "vertical"
@@ -249,7 +177,7 @@
             "state": {
               "type": "file-explorer",
               "state": {
-                "sortOrder": "alphabetical",
+                "sortOrder": "byModifiedTime",
                 "autoReveal": false
               },
               "icon": "lucide-folder-closed",
@@ -304,13 +232,13 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "replacing open5gs with oai-core on gcp.md",
+                "file": "F1 Handover Guide of 5G Setup with OAI-RAN and Open5GS on GCP.md",
                 "followCursor": false,
                 "showSearch": false,
                 "searchQuery": ""
               },
               "icon": "lucide-list",
-              "title": "Outline of replacing open5gs with oai-core on gcp"
+              "title": "Outline of F1 Handover Guide of 5G Setup with OAI-RAN and Open5GS on GCP"
             }
           },
           {
@@ -369,7 +297,6 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "bases:Create new base": false,
       "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
       "canvas:Create new canvas": false,
@@ -378,42 +305,42 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "2da9695dcb4b7f8a",
+  "active": "fc7e83acf442ed06",
   "lastOpenFiles": [
+    "temp.md",
+    "5G setup using OAI-RAN and Open5GS on WSL.md",
+    "F1 Handover Guide of 5G Setup with OAI-RAN and Open5GS on GCP.md",
+    "Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL.md",
     "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP with CU split.md",
     "5G setup using Open5gs and OAI on GCP.md",
-    "replacing open5gs with oai-core on gcp.md",
-    "logs-x.md",
-    "IBN.md",
-    "F1 Handover Guide of 5G Setup with OAI-RAN and Open5GS on GCP.md",
-    "Note from Vishal.md",
-    "F1 Handover Guide of 5G Setup with OAI-RAN and OAI-CORE on GCP.md",
-    "Untitled 5.md",
-    "5g setup on EXSI.md",
-    "5g setup on EXSI-IN-8KBKXD3.md",
-    "Intent Orchestration Layer.md",
-    "IP-CAL-CIBN.md",
-    "Untitled 2.md",
-    "Untitled 3.md",
-    "Untitled 4.md",
-    "Study on 4G and 5G Handover Mechanisms.md",
-    "F1 Handover Guide of 5G Setup with OAI-RAN and Open5GS on GCP v1.0.pdf",
-    "Untitled 2-IN-8KBKXD3.md",
-    "temp.md",
-    "temp-IN-8KBKXD3-2.md",
-    "temp-IN-8KBKXD3.md",
-    "5G setup using OAI-RAN and Open5GS on WSL.md",
-    "Guide to Setting Up an End-to-End 5G Network with OAI and Open5GS on WSL.md",
     "F1 Handover Guide of 5G Setup with OAI-RAN and Open5GS on GCP v1.0.docx",
+    "F1 Handover Guide of 5G Setup with OAI-RAN and Open5GS on GCP v1.0.pdf",
     "Pasted image 20250810173647.png",
     "Pasted image 20250810165528.png",
     "Pasted image 20250810165005.png",
     "Pasted image 20250810164758.png",
     "Pasted image 20250810162237.png",
     "Untitled 1.md",
+    "IP-CAL-CIBN.md",
+    "Note from Vishal.md",
     "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP-IN-20MXVM3.md",
     "5G setup using Open5gs and OAI on GCP-IN-8KBKXD3.md",
+    "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP-IN-8KBKXD3-5.md",
+    "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP-IN-8KBKXD3-4.md",
+    "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP-IN-8KBKXD3-3.md",
+    "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP-IN-8KBKXD3-2.md",
+    "F1 Handover Guide in 5G Setup with OAI-RAN and Open5GS on GCP-IN-8KBKXD3.md",
+    "F1 HANDOVER Revisited-IN-20MXVM3.md",
+    "5G setup using Open5gs and OAI on GCP-IN-20MXVM3.md",
+    "5G setup using Open5gs and OAI on GCP-IN-20MXVM3-6.md",
+    "5G setup using Open5gs and OAI on GCP-IN-20MXVM3-5.md",
+    "5G setup using Open5gs and OAI on GCP-IN-20MXVM3-4.md",
+    "5G setup using Open5gs and OAI on GCP-IN-20MXVM3-3.md",
+    "5G setup using Open5gs and OAI on GCP-IN-20MXVM3-2.md",
     "Pasted image 20250807172222.png",
+    "Study on 4G and 5G Handover Mechanisms.md",
+    "F1 HANDOVER Revisited-IN-8KBKXD3.md",
+    "5G setup using Open5gs and OAI on GCP-IN-8KBKXD3-6.md",
     "Pasted image 20250801140232.png",
     "Pasted image 20250801140209.png",
     "Pasted image 20250801140153.png",
